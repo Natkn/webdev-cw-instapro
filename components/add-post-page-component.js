@@ -1,4 +1,4 @@
-import { uploadImage, addPost } from "../api.js"; // Импортируем addPost
+import { uploadImage } from "../api.js"; // Импортируем addPost
 
 export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
   let imageUrl = "";

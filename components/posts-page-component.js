@@ -1,7 +1,7 @@
 import { getPosts, getUserPosts, likePost, dislikePost } from "../api.js";
 import { USER_POSTS_PAGE } from "../routes.js";
 import { renderHeaderComponent } from "./header-component.js";
-import { goToPage, posts, user } from "../index.js";
+import { goToPage, getToken, user } from "../index.js";
 import * as dateFns from "date-fns";
 import { ru } from "date-fns/locale";
 import { parseISO, isValid } from "date-fns"; //  Импортируем parseISO и isValid
@@ -15,17 +15,12 @@ export function renderPostsPageComponent({ appEl, userId }) {
                 <ul class="posts">
                  ${postsData
                    .map((post) => {
-                     let dateToShow = null; // Инициализируем null
+                     let dateToShow = null;
                      const createdAt = post.createdAt;
-
-                     // Проверяем, что createdAt существует и не null/undefined
                      if (createdAt) {
-                       // Проверяем, является ли createdAt числом (Unix timestamp)
                        if (typeof createdAt === "number") {
                          dateToShow = new Date(createdAt);
                        } else if (typeof createdAt === "string") {
-                         // Проверяем, что createdAt - строка
-                         // Предполагаем, что это строка ISO 8601 и парсим ее
                          const parsedDate = parseISO(createdAt);
                          if (isValid(parsedDate)) {
                            dateToShow = parsedDate;
@@ -56,7 +51,7 @@ export function renderPostsPageComponent({ appEl, userId }) {
                            locale: ru,
                          }) + " назад";
                      } else {
-                       dateElement = "Некорректная дата"; // Или другое сообщение об ошибке
+                       dateElement = "Некорректная дата";
                      }
 
                      return `
@@ -73,11 +68,9 @@ export function renderPostsPageComponent({ appEl, userId }) {
                         <div class="post-likes">
                             <button data-post-id="${
                               post.id
-                            }" class="like-button">
-                                ${
-                                  post.isLiked ? '<img src="">' : '<img src="">'
-                                }
-                            </button>
+                            }" class="like-button ${
+                       post.isLiked ? "liked" : ""
+                     }"></button>
                             <p class="post-likes-text">
                                 Нравится: <strong>${post.likes.length}</strong>
                             </p>
@@ -119,10 +112,15 @@ export function renderPostsPageComponent({ appEl, userId }) {
           if (post.isLiked) {
             dislikePost({ token: getToken(), postId })
               .then(() => {
-                post.likes = post.likes.filter(
-                  (like) => like.user.id !== user.id
-                );
+                post.likes = post.likes.filter((like) => {
+                  if (like && like.user) {
+                    return like.user.id !== user.id;
+                  } else {
+                    return false;
+                  }
+                });
                 post.isLiked = false;
+                likeButton.classList.remove("liked");
                 render();
               })
               .catch((error) => {
@@ -134,6 +132,7 @@ export function renderPostsPageComponent({ appEl, userId }) {
               .then(() => {
                 post.likes.push({ user: user });
                 post.isLiked = true;
+                likeButton.classList.add("liked");
                 render();
               })
               .catch((error) => {
