@@ -1,37 +1,28 @@
 /**
  * Компонент заголовка страницы.
  * Этот компонент отображает шапку страницы с логотипом, кнопкой добавления постов/входа и кнопкой выхода (если пользователь авторизован).
- * 
+ *
  * @param {HTMLElement} params.element - HTML-элемент, в который будет рендериться заголовок.
  * @returns {HTMLElement} Возвращает элемент заголовка после рендеринга.
  */
-export function renderHeaderComponent({ element }) {
-  /**
-   * Рендерит содержимое заголовка.
-   */
+export function renderHeaderComponent({ element, user }) {
+  // Рендерит содержимое заголовка.
   element.innerHTML = `
-  <div class="page-header">
-      <h1 class="logo">instapro</h1>
-      <button class="header-button add-or-login-button">
-      ${
-        user
-          ? `<div title="Добавить пост" class="add-post-sign"></div>`
-          : "Войти"
-      }
-      </button>
-      ${
-        user
-          ? `<button title="${user.name}" class="header-button logout-button">Выйти</button>`
-          : ""
-      }  
-  </div>
-  `;
+<div class="page-header">
+    <h1 class="logo">instapro</h1>
+    <button class="header-button add-or-login-button">
+    ${
+      user ? `<div title="Добавить пост" class="add-post-sign"></div>` : "Войти"
+    }
+    </button>
+    ${
+      user
+        ? `<button title="${user.name}" class="header-button logout-button">Выйти</button>`
+        : ""
+    }
+</div>
+`;
 
-  /**
-   * Обработчик клика по кнопке "Добавить пост"/"Войти".
-   * Если пользователь авторизован, перенаправляет на страницу добавления постов.
-   * Если пользователь не авторизован, перенаправляет на страницу авторизации.
-   */
   element
     .querySelector(".add-or-login-button")
     .addEventListener("click", () => {
@@ -42,18 +33,10 @@ export function renderHeaderComponent({ element }) {
       }
     });
 
-  /**
-   * Обработчик клика по логотипу.
-   * Перенаправляет на страницу с постами.
-   */
   element.querySelector(".logo").addEventListener("click", () => {
     goToPage(POSTS_PAGE);
   });
 
-  /**
-   * Обработчик клика по кнопке "Выйти".
-   * Если кнопка существует (т.е. пользователь авторизован), вызывает функцию `logout`.
-   */
   element.querySelector(".logout-button")?.addEventListener("click", logout);
 
   return element;

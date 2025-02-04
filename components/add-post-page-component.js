@@ -1,3 +1,5 @@
+import { uploadImage, addPost } from "../api.js"; // Импортируем addPost
+
 export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
   let imageUrl = "";
   let description = "";
@@ -19,6 +21,8 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
               </div>
               <div class="form-row">
                   <button class="button" id="add-button">Добавить</button>
+                  <input type="file" id="upload-button" style="display: none">
+                  <button class="button" id="upload-image">Загрузить</button>
               </div>
           </div>
       </div>
@@ -47,6 +51,29 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
         imageUrl: imageUrl,
       });
     });
+    document.getElementById("upload-image").addEventListener("click", () => {
+      document.getElementById("upload-button").click();
+    });
+
+    document
+      .getElementById("upload-button")
+      .addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+          return;
+        }
+
+        uploadImage({ file })
+          .then((data) => {
+            imageUrl = data.fileUrl;
+            imageUrlInput.value = imageUrl;
+            render(); // Обновляем страницу после загрузки изображения
+          })
+          .catch((error) => {
+            console.error("Ошибка загрузки изображения:", error);
+            alert("Произошла ошибка при загрузке изображения.");
+          });
+      });
   };
 
   render();
