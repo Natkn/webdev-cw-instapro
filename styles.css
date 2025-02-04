@@ -38,6 +38,26 @@ body {
   border-radius: 20px;
 }
 
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 20px 16px;
+  margin-left: -20px;
+  margin-right: -20px;
+}
+
+.logo {
+  margin: 0;
+  font-size: 28px;
+  cursor: pointer;
+  width: 130px;
+}
+
 .comments {
   display: flex;
   flex-direction: column;
