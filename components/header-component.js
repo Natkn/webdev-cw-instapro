@@ -7,7 +7,9 @@
  */
 import { goToPage } from "../index.js";
 import { AUTH_PAGE } from "../routes.js";
+import { ADD_POSTS_PAGE } from "../routes.js";
 import { logout } from "../index.js";
+
 export function renderHeaderComponent({ element, user }) {
   // Рендерит содержимое заголовка.
   element.innerHTML = `

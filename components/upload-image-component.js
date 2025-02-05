@@ -8,6 +8,7 @@
  *                                            Принимает один аргумент - новый URL изображения или пустую строку.
  */
 import { uploadImage } from "../api.js";
+
 export function renderUploadImageComponent({ element, onImageUrlChange }) {
   /**
    * URL текущего изображения.

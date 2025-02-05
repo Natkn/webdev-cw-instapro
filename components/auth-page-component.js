@@ -11,6 +11,7 @@ import { renderHeaderComponent } from "./header-component.js";
 import { renderUploadImageComponent } from "./upload-image-component.js";
 import { loginUser } from "../api.js";
 import { registerUser } from "../api.js";
+
 export function renderAuthPageComponent({ appEl, setUser }) {
   /**
    * Флаг, указывающий текущий режим формы.
@@ -117,7 +118,7 @@ export function renderAuthPageComponent({ appEl, setUser }) {
 
         loginUser({ login, password })
           .then((user) => {
-            setUser(user.user);
+            setUser({ ...user.user, imageUrl: imageUrl });
           })
           .catch((error) => {
             console.warn(error);
