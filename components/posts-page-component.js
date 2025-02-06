@@ -58,12 +58,14 @@ export function renderPostsPageComponent({ appEl, userId }) {
                     <li class="post">
                         <div class="post-header" data-user-id="${post.user.id}">
                             <img src="${
-                              user.profileImageUrl
+                              post.imageUrl
                             }" class="post-header__user-image">
-                            <p class="post-header__user-name">${
+                            <p class="post-header__user-namez">${
                               post.user.name
                             }</p>
-                        </div>
+                            <button
+                             class="delete-button"> Удалить</и>
+                        </button>
                         <div class="post-image-container">
                             <img class="post-image" src="${post.imageUrl}">
                         </div>

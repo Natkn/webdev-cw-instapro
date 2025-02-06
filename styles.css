@@ -389,3 +389,30 @@ body {
 ul.posts li {
   list-style-type: none;
 }
+
+.delete-button {
+  position: absolute;
+  background-color: #0b6345c2;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-left: 88%;
+  margin-top: -4%;
+}
+
+.delete-button:hover {
+  background-color: #d32f2f;
+}
+
+.loading-page {
+  display: flex;
+  align-items: center;
+  align-content: center;
+}
+.page-header {
+  display: flex;
+  align-items: center;
+  align-content: center;
+}
