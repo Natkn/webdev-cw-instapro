@@ -19,7 +19,7 @@ export function renderAuthPageComponent({ appEl, setUser }) {
    * @type {boolean}
    */
   let isLoginMode = true;
-
+  let profileImageUrl = "";
   /**
    * URL изображения, загруженного пользователем при регистрации.
    * Используется только в режиме регистрации.
@@ -92,7 +92,7 @@ export function renderAuthPageComponent({ appEl, setUser }) {
       renderUploadImageComponent({
         element: uploadImageContainer,
         onImageUrlChange(newImageUrl) {
-          imageUrl = newImageUrl;
+          profileImageUrl = newImageUrl;
         },
       });
     }
@@ -118,7 +118,7 @@ export function renderAuthPageComponent({ appEl, setUser }) {
 
         loginUser({ login, password })
           .then((user) => {
-            setUser({ ...user.user, imageUrl: imageUrl });
+            setUser(user.user);
           })
           .catch((error) => {
             console.warn(error);
@@ -145,14 +145,14 @@ export function renderAuthPageComponent({ appEl, setUser }) {
           return;
         }
 
-        if (!imageUrl) {
+        if (!profileImageUrl) {
           alert("Не выбрана фотография");
           return;
         }
 
-        registerUser({ login, password, name, imageUrl })
+        registerUser({ login, password, name, profileImageUrl })
           .then((user) => {
-            setUser(user.user);
+            setUser({ ...user.user, profileImageUrl: profileImageUrl });
           })
           .catch((error) => {
             console.warn(error);

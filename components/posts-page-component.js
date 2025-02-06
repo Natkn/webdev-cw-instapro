@@ -58,7 +58,7 @@ export function renderPostsPageComponent({ appEl, userId }) {
                     <li class="post">
                         <div class="post-header" data-user-id="${post.user.id}">
                             <img src="${
-                              post.imageUrl
+                              user.profileImageUrl
                             }" class="post-header__user-image">
                             <p class="post-header__user-name">${
                               post.user.name

@@ -386,3 +386,6 @@ body {
   border-radius: 40px;
   margin-right: 10px;
 }
+ul.posts li {
+  list-style-type: none;
+}
