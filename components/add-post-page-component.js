@@ -8,6 +8,14 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
     const appHtml = `
       <div class="page-container">
           <div class="header-container">
+          <div class="page-header">
+      <h1 class="logo">instapro</h1>
+      <button class="header-button add-or-login-button">
+      <div title="Добавить пост" class="add-post-sign"></div>
+      </button>
+      <button title="nastya1" class="header-button logout-button">Выйти</button>  
+  </div>
+   </div>
               <h1>Добавить новый пост</h1>
           </div>
           <div class="form">
@@ -15,14 +23,15 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
                   <label>URL картинки:</label>
                   <input type="text" id="image-url-input" class="input" value="${imageUrl}" />
               </div>
+              <button class="button" id="upload-image">Загрузить</button>
               <div class="form-row">
                   <label>Описание картинки:</label>
-                  <textarea id="description-input" class="input" rows="4">${description}</textarea>
+                  <textarea id="description-input" class="input" >${description}</textarea>
               </div>
               <div class="form-row">
                   <button class="button" id="add-button">Добавить</button>
                   <input type="file" id="upload-button" style="display: none">
-                  <button class="button" id="upload-image">Загрузить</button>
+                  
               </div>
           </div>
       </div>

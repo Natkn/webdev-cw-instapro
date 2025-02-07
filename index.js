@@ -16,7 +16,7 @@ import {
   saveUserToLocalStorage,
 } from "./helpers.js";
 import { addPost } from "./api.js";
-
+import { renderUserPostsPage } from "./user-posts.js";
 export let user = getUserFromLocalStorage();
 export let page = null;
 export let posts = [];
@@ -131,9 +131,40 @@ const renderApp = () => {
       appEl,
     });
   }
+  // После отрисовки постов (после appEl.innerHTML = appHtml;)
+  for (const userImage of document.querySelectorAll(
+    ".post-header__user-image"
+  )) {
+    userImage.addEventListener("click", (event) => {
+      const userId = userImage.closest(".post-header").dataset.userId;
+      console.log("Click Handler: userId =", userId); // Проверяем userId
+      if (userId) {
+        window.location.hash = `#/user-posts?userId=${userId}`;
+      }
+    });
+  }
+  if (window.location.hash.startsWith("#/user-posts")) {
+    const hash = window.location.hash;
+    const routeParams = hash
+      .substring(1)
+      .split("&")
+      .reduce((params, param) => {
+        const [key, value] = param.split("=");
+        params[key] = value;
+        return params;
+      }, {});
 
+    console.log("Router: routeParams =", routeParams); // Проверяем routeParams
+    const userId = routeParams.userId;
+    console.log("Router: userId =", userId); // Проверяем userId
+    renderUserPostsPage({ appEl: appEl, userId: userId, user: user });
+  }
   if (page === USER_POSTS_PAGE) {
-    appEl.innerHTML = "Здесь будет страница фотографий пользователя";
+    renderUserPostsPage({
+      appEl: appEl,
+      userId: window.location.hash.userId,
+      user: user,
+    }); // Вызываем функцию
     return;
   }
 };
