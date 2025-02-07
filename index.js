@@ -38,7 +38,7 @@ export const logout = () => {
  * Включает страницу приложения
  */
 export const goToPage = (newPage, data) => {
-  page = newPage; // Сначала установите новую страницу
+  page = newPage;
   renderApp(data);
   if (
     [
@@ -167,7 +167,7 @@ const renderApp = async (data) => {
       const userPosts = await getUserPosts({
         token: user.token,
         userId: userId,
-      }); // <--- Правильный вызов getUserPosts
+      });
       renderUserPostsPageComponent({
         appEl,
         posts: userPosts,

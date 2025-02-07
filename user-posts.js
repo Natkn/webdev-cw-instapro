@@ -1,11 +1,11 @@
-// components/user-posts-page-component.js
+import { USER_POSTS_PAGE } from "./routes";
+
 export function renderUserPostsPageComponent({
   appEl,
   posts,
   goToPage,
   userId,
 }) {
-  // Очищаем содержимое appEl (это важно!)
   appEl.innerHTML = "";
 
   // Создаем заголовок страницы
@@ -30,17 +30,12 @@ export function renderUserPostsPageComponent({
     const postItemEl = document.createElement("li");
     postItemEl.textContent = post.description; // Или другое свойство поста, которое вы хотите отобразить
     postsListEl.appendChild(postItemEl);
-
-    // Добавьте здесь код для отображения изображения, лайков и т.д.
   });
 
-  // (Опционально) Добавьте кнопку "Назад"
   const backButtonEl = document.createElement("button");
   backButtonEl.textContent = "Назад";
   backButtonEl.addEventListener("click", () => {
-    //  Переход на предыдущую страницу (например, главную страницу)
-    //  Вам нужно будет настроить этот переход в соответствии с вашей логикой
-    goToPage(SOME_OTHER_PAGE); // Замените SOME_OTHER_PAGE на константу для нужной страницы
+    goToPage(USER_POSTS_PAGE);
   });
   appEl.appendChild(backButtonEl);
 }
