@@ -1,89 +1,46 @@
-import { getUserPosts } from "./api.js";
-import { getToken } from "./index.js";
+// components/user-posts-page-component.js
+export function renderUserPostsPageComponent({
+  appEl,
+  posts,
+  goToPage,
+  userId,
+}) {
+  // Очищаем содержимое appEl (это важно!)
+  appEl.innerHTML = "";
 
-for (const userImage of document.querySelectorAll(".post-header__user-image")) {
-  userImage.addEventListener("click", () => {
-    if (user) {
-      window.location.hash = `#/user-posts?userId=${userId}`;
-    } else {
-      goToPage(AUTH_PAGE);
-    }
-  });
-}
+  // Создаем заголовок страницы
+  const titleEl = document.createElement("h1");
+  titleEl.textContent = `Посты пользователя ${userId}`;
+  appEl.appendChild(titleEl);
 
-export function renderUserPostsPage({ appEl, userId, user }) {
-  console.log("renderUserPostsPage: userId =", userId);
-  appEl.innerHTML = "Загружаю посты пользователя..."; // Отображаем сообщение о загрузке
-
-  getUserPosts({ token: getToken(), userId })
-    .then((posts) => {
-      if (posts.length === 0) {
-        appEl.innerHTML = "У этого пользователя пока нет постов";
-      } else {
-        renderPosts({ appEl, posts, user });
-      }
-    })
-    .catch((error) => {
-      console.error("Ошибка при загрузке постов пользователя:", error);
-      appEl.innerHTML = "Произошла ошибка при загрузке постов пользователя.";
-    });
-}
-
-export function renderPosts({ appEl, posts, user, userId }) {
-  const postsHtml = posts
-    .map((post) => {
-      const isOwnPost = user && post.user && post.user.id === user.id;
-      return `
-            <li class="post">
-              <div class="post-header" data-user-id="${post.user?.id}">
-                <img src="" class="post-header__user-image">
-                <p class="post-header__user-name">${post.user?.name}</p>
-              </div>
-              <div class="post-image-container">
-                <img class="post-image" src="${post.imageUrl}">
-              </div>
-              <div class="post-likes">
-                <button data-post-id="${post.id}" class="like-button ${
-        post.isLiked ? "liked" : ""
-      }"></button>
-                <p class="post-likes-text">Нравится: <strong>${
-                  post.likes.length
-                }</strong></p>
-              </div>
-              <p class="post-text">
-                <span class="user-name">${post.user?.name}</span>
-                ${post.description}
-              </p>
-              <p class="post-date">19 минут назад</p>
-              ${
-                isOwnPost
-                  ? `<button class="delete-button" data-post-id="${post.id}">Удалить</button>`
-                  : ""
-              }
-            </li>
-        `;
-    })
-    .join("");
-
-  const appHtml = `
-      <div class="page-container">
-        <div class="header-container"></div>
-        <ul class="posts">
-          ${postsHtml}
-        </ul>
-      </div>`;
-
-  appEl.innerHTML = appHtml;
-
-  for (const userImage of document.querySelectorAll(
-    ".post-header__user-image"
-  )) {
-    userImage.addEventListener("click", (event) => {
-      const userId = userImage.closest(".post-header").dataset.userId;
-      console.log("Click Handler: userId =", userId); // Проверяем userId
-      if (userId) {
-        goToPage(USER_POSTS_PAGE, { userId: userId });
-      }
-    });
+  // Если постов нет, выводим сообщение
+  if (!posts || posts.length === 0) {
+    const noPostsEl = document.createElement("p");
+    noPostsEl.textContent = "У этого пользователя пока нет постов.";
+    appEl.appendChild(noPostsEl);
+    return; // Завершаем функцию, если нет постов
   }
+
+  // Создаем список для постов
+  const postsListEl = document.createElement("ul");
+  appEl.appendChild(postsListEl);
+
+  // Для каждого поста создаем элемент списка
+  posts.forEach((post) => {
+    const postItemEl = document.createElement("li");
+    postItemEl.textContent = post.description; // Или другое свойство поста, которое вы хотите отобразить
+    postsListEl.appendChild(postItemEl);
+
+    // Добавьте здесь код для отображения изображения, лайков и т.д.
+  });
+
+  // (Опционально) Добавьте кнопку "Назад"
+  const backButtonEl = document.createElement("button");
+  backButtonEl.textContent = "Назад";
+  backButtonEl.addEventListener("click", () => {
+    //  Переход на предыдущую страницу (например, главную страницу)
+    //  Вам нужно будет настроить этот переход в соответствии с вашей логикой
+    goToPage(SOME_OTHER_PAGE); // Замените SOME_OTHER_PAGE на константу для нужной страницы
+  });
+  appEl.appendChild(backButtonEl);
 }

@@ -90,7 +90,7 @@ export function addPost({ token, imageUrl, description }) {
 
 export function getUserPosts({ token, userId }) {
   console.log("getUserPosts: userId =", userId);
-  return fetch(`${postsHost}/posts?userId=${userId}`, {
+  return fetch(`${postsHost}/posts${userId}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,

@@ -1,4 +1,4 @@
-import { getPosts } from "./api.js";
+import { getPosts, getUserPosts } from "./api.js";
 import { renderAddPostPageComponent } from "./components/add-post-page-component.js";
 import { renderAuthPageComponent } from "./components/auth-page-component.js";
 import {
@@ -16,7 +16,9 @@ import {
   saveUserToLocalStorage,
 } from "./helpers.js";
 import { addPost } from "./api.js";
-import { renderUserPostsPage } from "./user-posts.js";
+import { renderHeaderComponent } from "./components/header-component.js";
+import { renderUserPostsPageComponent } from "./user-posts.js";
+
 export let user = getUserFromLocalStorage();
 export let page = null;
 export let posts = [];
@@ -36,6 +38,8 @@ export const logout = () => {
  * Включает страницу приложения
  */
 export const goToPage = (newPage, data) => {
+  page = newPage; // Сначала установите новую страницу
+  renderApp(data);
   if (
     [
       POSTS_PAGE,
@@ -83,8 +87,10 @@ export const goToPage = (newPage, data) => {
   throw new Error("страницы не существует");
 };
 
-const renderApp = () => {
+const renderApp = async (data) => {
   const appEl = document.getElementById("app");
+  console.log("appEl:", appEl);
+
   if (page === LOADING_PAGE) {
     return renderLoadingPageComponent({
       appEl,
@@ -92,6 +98,10 @@ const renderApp = () => {
       goToPage,
     });
   }
+
+  renderHeaderComponent({
+    element: document.querySelector(".header-container"),
+  });
 
   if (page === AUTH_PAGE) {
     return renderAuthPageComponent({
@@ -132,39 +142,42 @@ const renderApp = () => {
     });
   }
   // После отрисовки постов (после appEl.innerHTML = appHtml;)
-  for (const userImage of document.querySelectorAll(
-    ".post-header__user-image"
-  )) {
-    userImage.addEventListener("click", (event) => {
-      const userId = userImage.closest(".post-header").dataset.userId;
-      console.log("Click Handler: userId =", userId); // Проверяем userId
-      if (userId) {
-        window.location.hash = `#/user-posts?userId=${userId}`;
-      }
+  const userImages = document.querySelectorAll(".post-header__user-image"); // Находим все аватарки
+
+  for (const userImage of userImages) {
+    // Перебираем их
+    userImage.addEventListener("click", () => {
+      const userId = userImage.dataset.userId; // Получаем userId из атрибута data-user-id
+      goToPage(USER_POSTS_PAGE, { userId }); // Переходим на страницу пользователя
     });
   }
-  if (window.location.hash.startsWith("#/user-posts")) {
-    const hash = window.location.hash;
-    const routeParams = hash
-      .substring(1)
-      .split("&")
-      .reduce((params, param) => {
-        const [key, value] = param.split("=");
-        params[key] = value;
-        return params;
-      }, {});
 
-    console.log("Router: routeParams =", routeParams); // Проверяем routeParams
-    const userId = routeParams.userId;
-    console.log("Router: userId =", userId); // Проверяем userId
-    renderUserPostsPage({ appEl: appEl, userId: userId, user: user });
-  }
   if (page === USER_POSTS_PAGE) {
-    renderUserPostsPage({
-      appEl: appEl,
-      userId: window.location.hash.userId,
-      user: user,
-    }); // Вызываем функцию
+    console.log("Data перед использованием:", data);
+    if (!data || !data.userId) {
+      console.error("Ошибка: data или data.userId не определены!");
+      appEl.innerHTML =
+        "<h1>Ошибка: Невозможно отобразить страницу пользователя</h1>";
+      return; // Прерываем выполнение функции
+    }
+
+    const userId = data.userId;
+    renderLoadingPageComponent({ appEl, user, goToPage });
+    try {
+      const userPosts = await getUserPosts({
+        token: user.token,
+        userId: userId,
+      }); // <--- Правильный вызов getUserPosts
+      renderUserPostsPageComponent({
+        appEl,
+        posts: userPosts,
+        goToPage,
+        userId,
+      });
+    } catch (error) {
+      console.error("Ошибка при загрузке постов пользователя:", error);
+      appEl.innerHTML = `<h1>Ошибка загрузки постов пользователя</h1><p>${error.message}</p>`;
+    }
     return;
   }
 };
