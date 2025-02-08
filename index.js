@@ -38,6 +38,12 @@ export const logout = () => {
  * Включает страницу приложения
  */
 export const goToPage = (newPage, data) => {
+  console.log("goToPage вызвана с:", newPage, data);
+  if (newPage === undefined) {
+    console.error("Ошибка: goToPage вызвана без аргумента newPage!");
+    return; // Или выбросьте ошибку, чтобы остановить выполнение
+  }
+
   page = newPage;
   renderApp(data);
   if (
@@ -72,25 +78,18 @@ export const goToPage = (newPage, data) => {
     }
 
     if (newPage === USER_POSTS_PAGE) {
-      console.log("Открываю страницу пользователя: ", data.userId);
-      page = USER_POSTS_PAGE;
-      posts = [];
-      return renderApp();
+      console.log("Передаю data в renderApp:", data); // Добавил логирование
+      renderApp(data); // Явно передаем data в renderApp
+      return; // Важно: выходим из функции после рендеринга
     }
 
-    page = newPage;
-    renderApp();
-
-    return;
+    renderApp(data);
   }
-
   throw new Error("страницы не существует");
 };
 
 const renderApp = async (data) => {
-  const appEl = document.getElementById("app");
-  console.log("appEl:", appEl);
-
+  let appEl = document.getElementById("app");
   if (page === LOADING_PAGE) {
     return renderLoadingPageComponent({
       appEl,
@@ -98,24 +97,33 @@ const renderApp = async (data) => {
       goToPage,
     });
   }
+  const tryGetAppEl = () => {
+    appEl = document.getElementById("app");
+    if (!appEl) {
+      console.warn("Элемент с id='app' не найден. Повторная попытка...");
+      setTimeout(tryGetAppEl, 50); // Повторяем каждые 50мс
+    } else {
+      // appEl найден, продолжаем рендеринг
+      console.log("Элемент с id='app' успешно найден!");
 
-  renderHeaderComponent({
-    element: document.querySelector(".header-container"),
-  });
+      renderHeaderComponent({
+        element: document.querySelector(".header-container"),
+      });
 
-  if (page === AUTH_PAGE) {
-    return renderAuthPageComponent({
-      appEl,
-      setUser: (newUser) => {
-        user = newUser;
-        saveUserToLocalStorage(user);
-        goToPage(POSTS_PAGE);
-      },
-      user,
-      goToPage,
-    });
-  }
-
+      if (page === AUTH_PAGE) {
+        return renderAuthPageComponent({
+          appEl,
+          setUser: (newUser) => {
+            user = newUser;
+            saveUserToLocalStorage(user);
+            goToPage(POSTS_PAGE);
+          },
+          user,
+          goToPage,
+        });
+      }
+    }
+  };
   if (page === ADD_POSTS_PAGE) {
     return renderAddPostPageComponent({
       appEl,
@@ -146,18 +154,29 @@ const renderApp = async (data) => {
 
   for (const userImage of userImages) {
     // Перебираем их
-    userImage.addEventListener("click", () => {
-      const userId = userImage.dataset.userId; // Получаем userId из атрибута data-user-id
-      goToPage(USER_POSTS_PAGE, { userId }); // Переходим на страницу пользователя
+    userImage.addEventListener("click", (event) => {
+      const postElement = userImage.closest(".post");
+      const userId = postElement.dataset.userId; //  <--  Извлекаем userId из data-user-id
+
+      console.log("userId:", userId);
+      console.log("postElement:", postElement);
+
+      goToPage(USER_POSTS_PAGE, { userId: userId });
+      event.stopPropagation(); // Предотвратить дальнейшее всплытие события
     });
   }
 
   if (page === USER_POSTS_PAGE) {
     console.log("Data перед использованием:", data);
-    if (!data || !data.userId) {
-      console.error("Ошибка: data или data.userId не определены!");
-      appEl.innerHTML =
-        "<h1>Ошибка: Невозможно отобразить страницу пользователя</h1>";
+    let userIdToLoad = null;
+
+    if (data && data.userId) {
+      userIdToLoad = data.userId;
+    } else if (user && user._id) {
+      userIdToLoad = user._id;
+    } else {
+      // Пользователь не залогинен или нет ID
+      goToPage(AUTH_PAGE); // Перенаправляем на страницу авторизации
       return; // Прерываем выполнение функции
     }
 
@@ -165,8 +184,8 @@ const renderApp = async (data) => {
     renderLoadingPageComponent({ appEl, user, goToPage });
     try {
       const userPosts = await getUserPosts({
-        token: user.token,
-        userId: userId,
+        token: getToken(),
+        userId: userIdToLoad,
       });
       renderUserPostsPageComponent({
         appEl,
@@ -176,10 +195,18 @@ const renderApp = async (data) => {
       });
     } catch (error) {
       console.error("Ошибка при загрузке постов пользователя:", error);
-      appEl.innerHTML = `<h1>Ошибка загрузки постов пользователя</h1><p>${error.message}</p>`;
+      while (appEl.firstChild) {
+        appEl.removeChild(appEl.firstChild);
+      }
+      let errorMessage = `Ошибка загрузки постов пользователя: ${error.message}`;
+      if (error.message.includes("404")) {
+        errorMessage = "Посты пользователя не найдены."; // Явное сообщение для 404
+      }
+      const errorEl = document.createElement("h1");
+      errorEl.textContent = `Ошибка загрузки постов пользователя: ${error.message}`;
+      appEl.appendChild(errorEl);
+      return;
     }
-    return;
   }
 };
-
 goToPage(POSTS_PAGE);

@@ -24,7 +24,7 @@ export function getPosts({ token }) {
     });
 }
 
-export function registerUser({ login, password, name, imageUrl }) {
+export function registerUser({ login, password, name, imageUrl, token }) {
   return fetch(baseHost + "/api/user", {
     method: "POST",
     body: JSON.stringify({
@@ -32,6 +32,7 @@ export function registerUser({ login, password, name, imageUrl }) {
       password,
       name,
       imageUrl,
+      token,
     }),
   }).then((response) => {
     if (response.status === 400) {
@@ -93,7 +94,7 @@ export function getUserPosts({ token, userId }) {
   return fetch(`${postsHost}/posts${userId}`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: ` ${token}`,
     },
   })
     .then((response) => {
@@ -131,5 +132,26 @@ export function dislikePost({ token, postId }) {
       throw new Error("Нет авторизации");
     }
     return response.json();
+  });
+}
+
+export function deletePost({ token, imageUrl, description }) {
+  return fetch(postsHost, {
+    method: "DELETE",
+    headers: {
+      Authorization: token,
+    },
+    body: JSON.stringify({
+      imageUrl,
+      description,
+    }),
+  }).then((response) => {
+    if (!response.ok) {
+      throw new Error(
+        `Не удалось удалить пост: ${response.status} ${response.statusText}`
+      );
+    }
+    //  Удаление обычно не возвращает JSON, поэтому возвращаем response.ok
+    return response.ok;
   });
 }

@@ -6,7 +6,9 @@ export function renderUserPostsPageComponent({
   goToPage,
   userId,
 }) {
-  appEl.innerHTML = "";
+  while (appEl.firstChild) {
+    appEl.removeChild(appEl.firstChild);
+  }
 
   // Создаем заголовок страницы
   const titleEl = document.createElement("h1");
@@ -18,24 +20,22 @@ export function renderUserPostsPageComponent({
     const noPostsEl = document.createElement("p");
     noPostsEl.textContent = "У этого пользователя пока нет постов.";
     appEl.appendChild(noPostsEl);
-    return; // Завершаем функцию, если нет постов
+  } else {
+    // Создаем список для постов
+    const postsListEl = document.createElement("ul");
+    appEl.appendChild(postsListEl);
+
+    // Для каждого поста создаем элемент списка
+    posts.forEach((post) => {
+      const postItemEl = document.createElement("li");
+      postItemEl.textContent = post.description; // Или другое свойство поста, которое вы хотите отобразить
+      postsListEl.appendChild(postItemEl);
+    });
   }
-
-  // Создаем список для постов
-  const postsListEl = document.createElement("ul");
-  appEl.appendChild(postsListEl);
-
-  // Для каждого поста создаем элемент списка
-  posts.forEach((post) => {
-    const postItemEl = document.createElement("li");
-    postItemEl.textContent = post.description; // Или другое свойство поста, которое вы хотите отобразить
-    postsListEl.appendChild(postItemEl);
-  });
-
   const backButtonEl = document.createElement("button");
   backButtonEl.textContent = "Назад";
   backButtonEl.addEventListener("click", () => {
-    goToPage(USER_POSTS_PAGE);
+    goToPage(USER_POSTS_PAGE, { userId: userId });
   });
   appEl.appendChild(backButtonEl);
 }

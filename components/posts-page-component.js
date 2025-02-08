@@ -16,6 +16,7 @@ export function renderPostsPageComponent({ appEl, userId }) {
                  ${postsData
                    .map((post) => {
                      console.log("Post data:", post);
+                     console.log("Post token:", `Bearer ${user.token}`);
                      const isOwnPost =
                        user && post.user && post.user.id === user.id;
                      let dateToShow = null;
@@ -104,9 +105,8 @@ export function renderPostsPageComponent({ appEl, userId }) {
 
     for (let userEl of document.querySelectorAll(".post-header")) {
       userEl.addEventListener("click", () => {
-        goToPage(USER_POSTS_PAGE, {
-          userId: userEl.dataset.userId,
-        });
+        const userId = "67a4fb99f2c1dbcaabba7def";
+        goToPage(USER_POSTS_PAGE, { userId: userId });
       });
     }
 
@@ -173,5 +173,4 @@ export function renderPostsPageComponent({ appEl, userId }) {
         alert("Произошла ошибка при загрузке постов.");
       });
   }
-  render();
 }
