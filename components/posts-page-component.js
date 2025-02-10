@@ -17,8 +17,6 @@ export function renderPostsPageComponent({ appEl, userId }) {
                    .map((post) => {
                      console.log("Post data:", post);
                      console.log("Post token:", `Bearer ${user.token}`);
-                     const isOwnPost =
-                       user && post.user && post.user.id === user.id;
                      let dateToShow = null;
                      const createdAt = post.createdAt;
                      if (createdAt) {
@@ -59,7 +57,7 @@ export function renderPostsPageComponent({ appEl, userId }) {
                      }
 
                      return `
-                    <li class="post">
+                    <li class="post" data-user-id="${post.user.id}">
                         <div class="post-header" data-user-id="${post.user.id}">
                             <img src="${
                               post.imageUrl
@@ -105,7 +103,7 @@ export function renderPostsPageComponent({ appEl, userId }) {
 
     for (let userEl of document.querySelectorAll(".post-header")) {
       userEl.addEventListener("click", () => {
-        const userId = "67a4fb99f2c1dbcaabba7def";
+        const userId = user.id;
         goToPage(USER_POSTS_PAGE, { userId: userId });
       });
     }

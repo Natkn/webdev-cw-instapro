@@ -91,7 +91,7 @@ export function addPost({ token, imageUrl, description }) {
 
 export function getUserPosts({ token, userId }) {
   console.log("getUserPosts: userId =", userId);
-  return fetch(`${postsHost}/posts${userId}`, {
+  return fetch(`${baseHost}/api/v1/${personalKey}/instapro/${userId}`, {
     method: "GET",
     headers: {
       Authorization: ` ${token}`,
@@ -136,7 +136,7 @@ export function dislikePost({ token, postId }) {
 }
 
 export function deletePost({ token, imageUrl, description }) {
-  return fetch(postsHost, {
+  return fetch(`${baseHost}/api/v1/${personalKey}/instapro/${postId}`, {
     method: "DELETE",
     headers: {
       Authorization: token,
