@@ -92,7 +92,7 @@ export function addPost({ token, imageUrl, description }) {
 export function getUserPosts({ token, userId }) {
   console.log("getUserPosts: userId =", userId);
   return fetch(
-    `${baseHost}/api/v1/${personalKey}/instapro/user-posts/67a6827c18f29876c3d65bb4`,
+    `${baseHost}/api/v1/${personalKey}/instapro/user-posts/${userId}`,
     {
       method: "GET",
       headers: {

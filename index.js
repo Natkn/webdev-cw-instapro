@@ -169,6 +169,7 @@ const renderApp = async (data) => {
     }
 
     renderLoadingPageComponent({ appEl, user, goToPage });
+
     try {
       const userPosts = await getUserPosts({
         token: getToken(),
@@ -178,7 +179,7 @@ const renderApp = async (data) => {
         appEl,
         posts: userPosts,
         goToPage,
-        userId,
+        userId: userIdToLoad,
       });
     } catch (error) {
       console.error("Ошибка при загрузке постов пользователя:", error);

@@ -104,6 +104,8 @@ export function renderPostsPageComponent({ appEl, userId }) {
 
     for (let userEl of document.querySelectorAll(".post-header")) {
       userEl.addEventListener("click", () => {
+        const userId = userEl.dataset.userId; //  Получаем userId из data-user-id
+        console.log("Клик по аватарке, userId =", userId); //  Проверяем значение userId
         goToPage(USER_POSTS_PAGE, { userId: userId });
       });
     }
