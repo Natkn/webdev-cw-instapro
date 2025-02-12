@@ -86,7 +86,7 @@ export function renderPostComponent({ post }) {
         <p class="post-header__user-name">${post.user.name}</p>
         ${
           isOwnPost
-            ? `<button class="delete-button" data-post-id="${post.id}" >Удалить</button>`
+            ? `<button class="delete-button" data-post-id="${post.user.id}" >Удалить</button>`
             : ""
         }
       </div>

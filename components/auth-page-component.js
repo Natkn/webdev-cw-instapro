@@ -118,7 +118,9 @@ export function renderAuthPageComponent({ appEl, setUser }) {
 
         loginUser({ login, password })
           .then((user) => {
-            setUser(user.user);
+            setUser(user); //  Сохраняем информацию о пользователе
+            setToken(user.token);
+            goToPage(POSTS_PAGE); //  Переходим на страницу постов
           })
           .catch((error) => {
             console.warn(error);
@@ -152,7 +154,9 @@ export function renderAuthPageComponent({ appEl, setUser }) {
 
         registerUser({ login, password, name, profileImageUrl })
           .then((user) => {
-            setUser({ ...user.user, profileImageUrl: profileImageUrl });
+            setUser(user); //  Сохраняем информацию о пользователе
+            setToken(user.token);
+            goToPage(POSTS_PAGE); //  Переходим на страницу постов
           })
           .catch((error) => {
             console.warn(error);

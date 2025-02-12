@@ -138,7 +138,7 @@ export function dislikePost({ token, postId }) {
   });
 }
 
-export function deletePost({ token, postId, imageUrl, description }) {
+export function deletePost({ token, postId }) {
   return fetch(`${baseHost}/api/v1/${personalKey}/instapro/post/${postId}`, {
     method: "DELETE",
     headers: {

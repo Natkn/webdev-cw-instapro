@@ -15,6 +15,12 @@ export function renderPostsPageComponent({ appEl, userId }) {
                 <ul class="posts">
                  ${postsData
                    .map((post) => {
+                     console.log(
+                       "user.id:",
+                       userId,
+                       "post.user.id:",
+                       post.user.id
+                     );
                      const isOwnPost =
                        user && post.user && post.user.id === user.id;
                      let dateToShow = null;
@@ -57,9 +63,11 @@ export function renderPostsPageComponent({ appEl, userId }) {
                      }
 
                      return `
-                    <li class="post">
-                        <div class="post-header" data-user-id="${post.user.id}">
-                            <img src="" class="post-header__user-image">
+                    <li class="post" data-user-id="${post.user.id}">
+                        <div class="post-header" >
+                            <img src="${
+                              post.user.imageUrl
+                            }" class="post-header__user-image">
                             <p class="post-header__user-namez">${
                               post.user.name
                             }</p>
@@ -97,7 +105,6 @@ export function renderPostsPageComponent({ appEl, userId }) {
 
     appEl.innerHTML = appHtml;
 
-    console.log("Вызов renderHeaderComponent");
     renderHeaderComponent({
       element: document.querySelector(".header-container"),
       user,
@@ -207,4 +214,25 @@ export function renderPostsPageComponent({ appEl, userId }) {
         });
     }
   });*/
+  // renderPostsPageComponent.js
+
+  for (let deleteButton of document.querySelectorAll(".delete-button")) {
+    deleteButton.addEventListener("click", (event) => {
+      event.stopPropagation(); //  Предотвращаем всплытие события
+      const postId = deleteButton.dataset.postId;
+
+      //  Вызываем функцию для удаления поста
+      deletePost({ token: getToken(), postId })
+        .then(() => {
+          //  Удаляем пост из массива postsData
+          postsData = postsData.filter((post) => post.id !== postId);
+          //  Перерисовываем страницу
+          render();
+        })
+        .catch((error) => {
+          console.error("Ошибка при удалении поста:", error);
+          alert("Произошла ошибка при удалении поста.");
+        });
+    });
+  }
 }
