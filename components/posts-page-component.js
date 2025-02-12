@@ -15,8 +15,8 @@ export function renderPostsPageComponent({ appEl, userId }) {
                 <ul class="posts">
                  ${postsData
                    .map((post) => {
-                     console.log("Post data:", post);
-                     console.log("Post token:", `Bearer ${user.token}`);
+                     const isOwnPost =
+                       user && post.user && post.user.id === user.id;
                      let dateToShow = null;
                      const createdAt = post.createdAt;
                      if (createdAt) {
@@ -57,17 +57,18 @@ export function renderPostsPageComponent({ appEl, userId }) {
                      }
 
                      return `
-                    <li class="post" data-user-id="${post.user.id}">
+                    <li class="post">
                         <div class="post-header" data-user-id="${post.user.id}">
-                            <img src="${
-                              post.imageUrl
-                            }" class="post-header__user-image">
+                            <img src="" class="post-header__user-image">
                             <p class="post-header__user-namez">${
                               post.user.name
                             }</p>
-                            <button
-                             class="delete-button"> Удалить</и>
-                        </button>
+                            ${
+                              isOwnPost
+                                ? `<button class="delete-button" data-post-id="${post.id}">Удалить</button>`
+                                : ""
+                            }
+                        </div>
                         <div class="post-image-container">
                             <img class="post-image" src="${post.imageUrl}">
                         </div>
@@ -103,13 +104,13 @@ export function renderPostsPageComponent({ appEl, userId }) {
 
     for (let userEl of document.querySelectorAll(".post-header")) {
       userEl.addEventListener("click", () => {
-        const userId = user.id;
         goToPage(USER_POSTS_PAGE, { userId: userId });
       });
     }
 
     for (let likeButton of document.querySelectorAll(".like-button")) {
-      likeButton.addEventListener("click", () => {
+      likeButton.addEventListener("click", (event) => {
+        event.stopPropagation();
         const postId = likeButton.dataset.postId;
         const post = postsData.find((post) => post.id === postId);
 
@@ -171,4 +172,36 @@ export function renderPostsPageComponent({ appEl, userId }) {
         alert("Произошла ошибка при загрузке постов.");
       });
   }
+  // УДАЛЯЕМ ЭТОТ КОД!
+  /*appEl.addEventListener("click", (event) => {
+    const deleteButton = event.target;
+    if (deleteButton.classList.contains("delete-button")) {
+      event.stopPropagation(); //  Добавляем эту строку!
+      const postId = deleteButton.dataset.postId;
+
+      console.log("Удаляем пост с ID:", postId);
+      console.log("deleteButton.dataset:", deleteButton.dataset);
+
+      if (!postId) {
+        console.error("Не удалось получить ID поста.");
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.log("Вы не авторизованы.");
+        return;
+      }
+
+      deletePost({ token: token, postId: postId })
+        .then(() => {
+          const postElement = deleteButton.closest(".post");
+          postElement.remove();
+        })
+        .catch((error) => {
+          console.error("Ошибка при удалении поста:", error);
+          alert("Произошла ошибка при удалении поста.");
+        });
+    }
+  });*/
 }

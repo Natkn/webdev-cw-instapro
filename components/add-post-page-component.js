@@ -1,5 +1,6 @@
-import { uploadImage } from "../api.js"; // Импортируем addPost
-
+import { uploadImage, addPost } from "../api.js"; // Импортируем addPost
+import { goToPage } from "../index.js";
+import { POSTS_PAGE } from "../routes.js";
 export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
   let imageUrl = "";
   let description = "";
@@ -83,6 +84,9 @@ export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
             alert("Произошла ошибка при загрузке изображения.");
           });
       });
+    document.querySelector(".logo").addEventListener("click", () => {
+      goToPage(POSTS_PAGE);
+    });
   };
 
   render();

@@ -160,7 +160,7 @@ export function renderAuthPageComponent({ appEl, setUser }) {
           });
       }
     });
-
+    localStorage.setItem("token", response.token);
     // Обработка переключения режима (вход ↔ регистрация)
     document.getElementById("toggle-button").addEventListener("click", () => {
       isLoginMode = !isLoginMode;

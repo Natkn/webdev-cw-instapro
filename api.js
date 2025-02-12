@@ -91,12 +91,15 @@ export function addPost({ token, imageUrl, description }) {
 
 export function getUserPosts({ token, userId }) {
   console.log("getUserPosts: userId =", userId);
-  return fetch(`${baseHost}/api/v1/${personalKey}/instapro/${userId}`, {
-    method: "GET",
-    headers: {
-      Authorization: ` ${token}`,
-    },
-  })
+  return fetch(
+    `${baseHost}/api/v1/${personalKey}/instapro/user-posts/67a6827c18f29876c3d65bb4`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: token,
+      },
+    }
+  )
     .then((response) => {
       if (response.status === 401) {
         throw new Error("Нет авторизации");
@@ -135,8 +138,8 @@ export function dislikePost({ token, postId }) {
   });
 }
 
-export function deletePost({ token, imageUrl, description }) {
-  return fetch(`${baseHost}/api/v1/${personalKey}/instapro/${postId}`, {
+export function deletePost({ token, postId, imageUrl, description }) {
+  return fetch(`${baseHost}/api/v1/${personalKey}/instapro/post/${postId}`, {
     method: "DELETE",
     headers: {
       Authorization: token,
@@ -151,7 +154,7 @@ export function deletePost({ token, imageUrl, description }) {
         `Не удалось удалить пост: ${response.status} ${response.statusText}`
       );
     }
-    //  Удаление обычно не возвращает JSON, поэтому возвращаем response.ok
+
     return response.ok;
   });
 }

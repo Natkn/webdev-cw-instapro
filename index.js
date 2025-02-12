@@ -85,11 +85,15 @@ export const goToPage = (newPage, data) => {
 
     renderApp(data);
   }
-  throw new Error("страницы не существует");
 };
 
 const renderApp = async (data) => {
   let appEl = document.getElementById("app");
+  if (!appEl) {
+    console.warn("Элемент с id='app' не найден!");
+    return;
+  }
+
   if (page === LOADING_PAGE) {
     return renderLoadingPageComponent({
       appEl,
@@ -97,33 +101,24 @@ const renderApp = async (data) => {
       goToPage,
     });
   }
-  const tryGetAppEl = () => {
-    appEl = document.getElementById("app");
-    if (!appEl) {
-      console.warn("Элемент с id='app' не найден. Повторная попытка...");
-      setTimeout(tryGetAppEl, 50); // Повторяем каждые 50мс
-    } else {
-      // appEl найден, продолжаем рендеринг
-      console.log("Элемент с id='app' успешно найден!");
 
-      renderHeaderComponent({
-        element: document.querySelector(".header-container"),
-      });
+  renderHeaderComponent({
+    element: document.querySelector(".header-container"),
+  });
 
-      if (page === AUTH_PAGE) {
-        return renderAuthPageComponent({
-          appEl,
-          setUser: (newUser) => {
-            user = newUser;
-            saveUserToLocalStorage(user);
-            goToPage(POSTS_PAGE);
-          },
-          user,
-          goToPage,
-        });
-      }
-    }
-  };
+  if (page === AUTH_PAGE) {
+    return renderAuthPageComponent({
+      appEl,
+      setUser: (newUser) => {
+        user = newUser;
+        saveUserToLocalStorage(user);
+        goToPage(POSTS_PAGE);
+      },
+      user,
+      goToPage,
+    });
+  }
+
   if (page === ADD_POSTS_PAGE) {
     return renderAddPostPageComponent({
       appEl,
@@ -149,22 +144,6 @@ const renderApp = async (data) => {
       appEl,
     });
   }
-  // После отрисовки постов (после appEl.innerHTML = appHtml;)
-  const userImages = document.querySelectorAll(".post-header__user-image"); // Находим все аватарки
-
-  for (const userImage of userImages) {
-    // Перебираем их
-    userImage.addEventListener("click", (event) => {
-      const postElement = userImage.closest(".post");
-      const userId = postElement.dataset.userId; //  <--  Извлекаем userId из data-user-id
-
-      console.log("userId:", userId);
-      console.log("postElement:", postElement);
-
-      goToPage(USER_POSTS_PAGE, { userId: userId });
-      event.stopPropagation(); // Предотвратить дальнейшее всплытие события
-    });
-  }
 
   if (page === USER_POSTS_PAGE) {
     console.log("Data перед использованием:", data);
@@ -177,10 +156,9 @@ const renderApp = async (data) => {
     } else {
       // Пользователь не залогинен или нет ID
       goToPage(AUTH_PAGE); // Перенаправляем на страницу авторизации
-      return; // Прерываем выполнение функции
+      return;
     }
 
-    const userId = data.userId;
     renderLoadingPageComponent({ appEl, user, goToPage });
     try {
       const userPosts = await getUserPosts({
@@ -209,4 +187,9 @@ const renderApp = async (data) => {
     }
   }
 };
+const appEl = document.createElement("div");
+appEl.id = "app";
+
+// Добавляем элемент в DOM (важно!)
+document.body.appendChild(appEl);
 goToPage(POSTS_PAGE);

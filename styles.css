@@ -404,6 +404,7 @@ ul.posts li {
 
 .delete-button:hover {
   background-color: #d32f2f;
+  z-index: 1000;
 }
 
 .loading-page {
