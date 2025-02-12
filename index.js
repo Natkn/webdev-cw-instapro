@@ -19,7 +19,7 @@ import { addPost } from "./api.js";
 import { renderHeaderComponent } from "./components/header-component.js";
 import { renderUserPostsPageComponent } from "./user-posts.js";
 
-export let user = getUserFromLocalStorage();
+export let user = null;
 export let page = null;
 export let posts = [];
 
