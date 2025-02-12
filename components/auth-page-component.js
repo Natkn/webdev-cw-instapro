@@ -115,12 +115,9 @@ export function renderAuthPageComponent({ appEl, setUser }) {
           alert("Введите пароль");
           return;
         }
-
         loginUser({ login, password })
           .then((user) => {
-            setUser(user); //  Сохраняем информацию о пользователе
-            setToken(user.token);
-            goToPage(POSTS_PAGE); //  Переходим на страницу постов
+            setUser(user.user);
           })
           .catch((error) => {
             console.warn(error);
@@ -152,11 +149,9 @@ export function renderAuthPageComponent({ appEl, setUser }) {
           return;
         }
 
-        registerUser({ login, password, name, profileImageUrl })
+        registerUser({ login, password, name, imageUrl })
           .then((user) => {
-            setUser(user); //  Сохраняем информацию о пользователе
-            setToken(user.token);
-            goToPage(POSTS_PAGE); //  Переходим на страницу постов
+            setUser(user.user);
           })
           .catch((error) => {
             console.warn(error);
@@ -164,7 +159,7 @@ export function renderAuthPageComponent({ appEl, setUser }) {
           });
       }
     });
-    localStorage.setItem("token", response.token);
+
     // Обработка переключения режима (вход ↔ регистрация)
     document.getElementById("toggle-button").addEventListener("click", () => {
       isLoginMode = !isLoginMode;

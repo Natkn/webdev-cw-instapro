@@ -15,12 +15,6 @@ export function renderPostsPageComponent({ appEl, userId }) {
                 <ul class="posts">
                  ${postsData
                    .map((post) => {
-                     console.log(
-                       "user.id:",
-                       userId,
-                       "post.user.id:",
-                       post.user.id
-                     );
                      const isOwnPost =
                        user && post.user && post.user.id === user.id;
                      let dateToShow = null;
