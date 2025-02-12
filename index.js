@@ -87,8 +87,21 @@ export const goToPage = (newPage, data) => {
   }
 };
 
+const appEl = document.createElement("div"); //  Первое и единственное объявление
+appEl.id = "app";
+document.body.appendChild(appEl);
+
+const headerContainer = document.createElement("div");
+headerContainer.className = "header-container";
+document.body.appendChild(headerContainer);
+
+renderHeaderComponent({
+  element: document.querySelector(".header-container"),
+});
+
 const renderApp = async (data) => {
-  let appEl = document.getElementById("app");
+  // 2. Просто получаем ссылку на существующий элемент
+  const appEl = document.getElementById("app");
   if (!appEl) {
     console.warn("Элемент с id='app' не найден!");
     return;
@@ -101,10 +114,6 @@ const renderApp = async (data) => {
       goToPage,
     });
   }
-
-  renderHeaderComponent({
-    element: document.querySelector(".header-container"),
-  });
 
   if (page === AUTH_PAGE) {
     return renderAuthPageComponent({
@@ -187,9 +196,5 @@ const renderApp = async (data) => {
     }
   }
 };
-const appEl = document.createElement("div");
-appEl.id = "app";
 
-// Добавляем элемент в DOM (важно!)
-document.body.appendChild(appEl);
 goToPage(POSTS_PAGE);
