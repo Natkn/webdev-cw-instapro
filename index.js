@@ -87,17 +87,14 @@ export const goToPage = (newPage, data) => {
   }
 };
 
-const appEl = document.createElement("div"); //  Первое и единственное объявление
+const appEl = document.createElement("div"); // Первое и единственное объявление
 appEl.id = "app";
-document.body.appendChild(appEl);
 
 const headerContainer = document.createElement("div");
 headerContainer.className = "header-container";
-document.body.appendChild(headerContainer);
+appEl.appendChild(headerContainer); // Добавляем headerContainer внутрь appEl
 
-renderHeaderComponent({
-  element: document.querySelector(".header-container"),
-});
+document.body.appendChild(appEl); // Добавляем appEl в DOM (вместе с headerContainer)
 
 const renderApp = async (data) => {
   // 2. Просто получаем ссылку на существующий элемент

@@ -97,6 +97,7 @@ export function renderPostsPageComponent({ appEl, userId }) {
 
     appEl.innerHTML = appHtml;
 
+    console.log("Вызов renderHeaderComponent");
     renderHeaderComponent({
       element: document.querySelector(".header-container"),
       user,
