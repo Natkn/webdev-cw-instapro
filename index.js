@@ -22,7 +22,9 @@ import { renderUserPostsPageComponent } from "./user-posts.js";
 export let user = null;
 export let page = null;
 export let posts = [];
-
+const setUser = (newUser) => {
+  user = newUser;
+};
 export const getToken = () => {
   const token = user ? `Bearer ${user.token}` : undefined;
   return token;
@@ -177,6 +179,7 @@ const renderApp = async (data) => {
         posts: userPosts,
         goToPage,
         userId: userIdToLoad,
+        user: user,
       });
     } catch (error) {
       console.error("Ошибка при загрузке постов пользователя:", error);

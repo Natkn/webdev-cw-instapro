@@ -17,30 +17,58 @@ export function renderUserPostsPageComponent({ appEl, posts, user }) {
   // 2. Рендерим шапку в созданный элемент
   renderHeaderComponent({ element: headerEl, user: user });
 
-  // Если постов нет, выводим сообщение
   if (!posts || posts.length === 0) {
     const noPostsEl = document.createElement("p");
     noPostsEl.textContent = "У этого пользователя пока нет постов.";
     appEl.appendChild(noPostsEl);
   } else {
     // Создаем список для постов
-    const postsListEl = document.createElement("p");
+    const postsListEl = document.createElement("ul"); //  Изменил на <ul> чтобы соответствовать html
+    postsListEl.classList.add("posts"); //  Добавил класс чтобы работал css
     appEl.appendChild(postsListEl);
 
     posts.forEach((post) => {
-      console.log("Данные поста перед рендерингом:", post);
       const postHtml = renderPostComponent({
         post: post,
+        user: user, // Передаем user
+        onDelete: () => {
+          //  Функция, которая будет вызвана при нажатии на кнопку "Удалить"
+          posts = posts.filter((p) => p.id !== post.id); //  Обновляем список постов
+          renderUserPostsPageComponent({ appEl, posts, user }); //  Перерисовываем страницу
+        },
       });
       postsListEl.innerHTML += postHtml;
+    });
+
+    // Добавляем обработчики удаления после добавления постов на страницу
+    const deleteButtons = document.querySelectorAll(".delete-button");
+    deleteButtons.forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation(); //  Предотвращаем всплытие события
+        const postId = button.dataset.postId;
+
+        deletePost({ token: getToken(), postId })
+          .then(() => {
+            //  Удаляем пост из массива posts
+            posts = posts.filter((post) => post.id !== postId);
+
+            //  Перерисовываем страницу
+            renderUserPostsPageComponent({ appEl, posts, user });
+          })
+          .catch((error) => {
+            console.error("Ошибка при удалении поста:", error);
+            alert("Произошла ошибка при удалении поста.");
+          });
+      });
     });
   }
 }
 
 export function renderPostComponent({ post }) {
-  // Функция onDelete будет вызвана при нажатии на кнопку "Удалить" (если пост принадлежит пользователю)
-
-  const isOwnPost = user && post.user && post.user.id === user.id;
+  const isOwnPost = user && post.user && post.user.id === user._id;
+  console.log("user.id:", user ? user._id : null);
+  console.log("post.user.id:", post.user ? post.user.id : null);
+  console.log("isOwnPost:", isOwnPost);
   let dateToShow = null;
   const createdAt = post.createdAt;
 
@@ -86,7 +114,7 @@ export function renderPostComponent({ post }) {
         <p class="post-header__user-name">${post.user.name}</p>
         ${
           isOwnPost
-            ? `<button class="delete-button" data-post-id="${post.user.id}" >Удалить</button>`
+            ? `<button class="delete-button" data-post-id="${post.id}" >Удалить</button>`
             : ""
         }
       </div>

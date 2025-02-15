@@ -139,22 +139,20 @@ export function dislikePost({ token, postId }) {
 }
 
 export function deletePost({ token, postId }) {
-  return fetch(`${baseHost}/api/v1/${personalKey}/instapro/post/${postId}`, {
+  return fetch(`${baseHost}/api/v1/${personalKey}/instapro/${postId}`, {
     method: "DELETE",
     headers: {
       Authorization: token,
     },
-    body: JSON.stringify({
-      imageUrl,
-      description,
-    }),
-  }).then((response) => {
-    if (!response.ok) {
-      throw new Error(
-        `Не удалось удалить пост: ${response.status} ${response.statusText}`
-      );
-    }
+  })
+    .then((response) => {
+      if (response.status === 401) {
+        throw new Error("Нет авторизации");
+      }
 
-    return response.ok;
-  });
+      return response.json();
+    })
+    .then((data) => {
+      return data.post;
+    });
 }

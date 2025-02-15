@@ -16,7 +16,7 @@ export function renderPostsPageComponent({ appEl, userId }) {
                  ${postsData
                    .map((post) => {
                      const isOwnPost =
-                       user && post.user && post.user.id === user.id;
+                       user && post.user && post.user.id === user._id;
                      let dateToShow = null;
                      const createdAt = post.createdAt;
                      if (createdAt) {
@@ -67,7 +67,7 @@ export function renderPostsPageComponent({ appEl, userId }) {
                             }</p>
                             ${
                               isOwnPost
-                                ? `<button class="delete-button" data-post-id="${post.id}">Удалить</button>`
+                                ? `<button class="delete-button" data-post-id="${post.id}" >Удалить</button>`
                                 : ""
                             }
                         </div>
@@ -176,39 +176,6 @@ export function renderPostsPageComponent({ appEl, userId }) {
         alert("Произошла ошибка при загрузке постов.");
       });
   }
-  // УДАЛЯЕМ ЭТОТ КОД!
-  /*appEl.addEventListener("click", (event) => {
-    const deleteButton = event.target;
-    if (deleteButton.classList.contains("delete-button")) {
-      event.stopPropagation(); //  Добавляем эту строку!
-      const postId = deleteButton.dataset.postId;
-
-      console.log("Удаляем пост с ID:", postId);
-      console.log("deleteButton.dataset:", deleteButton.dataset);
-
-      if (!postId) {
-        console.error("Не удалось получить ID поста.");
-        return;
-      }
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        console.log("Вы не авторизованы.");
-        return;
-      }
-
-      deletePost({ token: token, postId: postId })
-        .then(() => {
-          const postElement = deleteButton.closest(".post");
-          postElement.remove();
-        })
-        .catch((error) => {
-          console.error("Ошибка при удалении поста:", error);
-          alert("Произошла ошибка при удалении поста.");
-        });
-    }
-  });*/
-  // renderPostsPageComponent.js
 
   for (let deleteButton of document.querySelectorAll(".delete-button")) {
     deleteButton.addEventListener("click", (event) => {
