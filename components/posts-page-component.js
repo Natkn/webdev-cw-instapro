@@ -197,3 +197,44 @@ export function renderPostsPageComponent({ appEl, userId }) {
     });
   }
 }
+
+const backToTopButton = document.createElement("button");
+backToTopButton.id = "back-to-top-btn";
+backToTopButton.title = "Наверх";
+backToTopButton.innerHTML = "&#8679;";
+
+backToTopButton.style.display = "none";
+backToTopButton.style.position = "fixed";
+backToTopButton.style.bottom = "20px";
+backToTopButton.style.right = "20px";
+backToTopButton.style.zIndex = "99";
+backToTopButton.style.border = "none";
+backToTopButton.style.outline = "none";
+backToTopButton.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+backToTopButton.style.color = "white";
+backToTopButton.style.cursor = "pointer";
+backToTopButton.style.padding = "10px";
+backToTopButton.style.borderRadius = "5px";
+backToTopButton.style.fontSize = "20px";
+backToTopButton.style.transition = "all 0.3s ease";
+
+document.body.appendChild(backToTopButton);
+
+function scrollFunction() {
+  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+    backToTopButton.style.display = "block";
+  } else {
+    backToTopButton.style.display = "none";
+  }
+}
+
+function backToTop() {
+  document.body.scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+}
+
+window.onscroll = function () {
+  scrollFunction();
+};
+
+backToTopButton.addEventListener("click", backToTop);

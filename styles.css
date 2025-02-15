@@ -221,13 +221,13 @@ body {
   display: flex;
   justify-content: center;
   background-color: #e0e0e0;
-  overflow: hidden; /* Важно для object-fit: cover */
+  overflow: hidden;
 }
 
 .post-image {
-  max-width: 100%; /* Чтобы изображение не было больше контейнера */
+  max-width: 100%;
   max-height: 100%;
-  object-fit: cover; /* или contain */
+  object-fit: cover;
 }
 
 .header-container {
@@ -488,4 +488,29 @@ h1 {
 
 .posts {
   margin-left: -2%;
+}
+
+#back-to-top-btn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  background-color: #08875cb8;
+  color: white;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 20px;
+  transition: all 0.3s ease;
+}
+
+#back-to-top-btn:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+#back-to-top-btn.show {
+  display: block;
 }
