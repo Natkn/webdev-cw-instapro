@@ -400,6 +400,7 @@ ul.posts li {
   border-radius: 5px;
   margin-left: 88%;
   margin-top: -4%;
+  box-sizing: border-box;
 }
 
 .delete-button:hover {
@@ -513,4 +514,67 @@ h1 {
 
 #back-to-top-btn.show {
   display: block;
+}
+
+/* Стили для экранов с шириной до 768px (мобильные телефоны) */
+@media (max-width: 768px) {
+  body {
+    font-size: 16px;
+  }
+
+  .page-container {
+    width: 100%; /* Занимает всю ширину экрана */
+    padding: 10px;
+  }
+
+  .header-container {
+    text-align: center;
+  }
+
+  .navigation {
+    display: none; /* Скрываем навигацию на мобильных устройствах */
+  }
+  .delete-button {
+    display: flex;
+    box-sizing: border-box;
+    flex-wrap: wrap;
+    position: relative;
+    margin-top: -12%;
+    margin-bottom: 8%;
+    margin-left: 80%;
+  }
+
+  .add-post-sign {
+    margin-left: 90%;
+  }
+  .posts {
+    width: 100%;
+    margin-left: -3%;
+    box-sizing: border-box;
+  }
+}
+
+/* Стили для экранов с шириной больше 768px (планшеты и компьютеры) */
+@media (min-width: 769px) {
+  body {
+    font-size: 18px;
+  }
+
+  .header-container {
+    text-align: left;
+  }
+
+  .navigation {
+    display: block; /* Показываем навигацию на больших экранах */
+  }
+
+  .delete-button {
+    display: flex;
+    box-sizing: border-box;
+    flex-wrap: wrap;
+    position: relative;
+    margin-top: -4%;
+    margin-bottom: 4%;
+    margin-left: 90%;
+  }
 }

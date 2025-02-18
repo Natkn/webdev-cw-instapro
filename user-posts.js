@@ -4,7 +4,7 @@ import { ru } from "date-fns/locale";
 import { parseISO, isValid } from "date-fns"; // Импортируем parseISO и isValid
 import { user, getToken } from "./index.js";
 import { renderHeaderComponent } from "./components/header-component.js";
-import { deletePost } from "./api.js";
+import { deletePost, likePost, dislikePost } from "./api.js";
 
 export function renderUserPostsPageComponent({ appEl, posts, user }) {
   while (appEl.firstChild) {
@@ -13,6 +13,11 @@ export function renderUserPostsPageComponent({ appEl, posts, user }) {
 
   const headerEl = document.createElement("div");
   appEl.appendChild(headerEl);
+  renderHeaderComponent({ element: headerEl, user: user });
+
+  const postsListEl = document.createElement("ul");
+  postsListEl.classList.add("posts"); //  Добавляем класс "posts"
+  appEl.appendChild(postsListEl);
 
   // 2. Рендерим шапку в созданный элемент
   renderHeaderComponent({ element: headerEl, user: user });
@@ -62,13 +67,53 @@ export function renderUserPostsPageComponent({ appEl, posts, user }) {
       });
     });
   }
-}
 
+  const likeButtons = document.querySelectorAll(".like-button");
+  likeButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const postId = button.dataset.postId;
+
+      const post = posts.find((post) => post.id === postId);
+
+      if (post) {
+        if (post.isLiked) {
+          dislikePost({ token: getToken(), postId })
+            .then(() => {
+              post.likes = post.likes.filter((like) => {
+                if (like && like.user) {
+                  return like.user.id !== user.id;
+                } else {
+                  return false;
+                }
+              });
+              post.isLiked = false;
+              button.classList.remove("liked"); //  Исправлено: используем button вместо likeButton
+              renderUserPostsPageComponent({ appEl, posts, user });
+            })
+            .catch((error) => {
+              console.error("Ошибка при дизлайке поста:", error);
+              alert("Произошла ошибка при дизлайке поста.");
+            });
+        } else {
+          likePost({ token: getToken(), postId })
+            .then(() => {
+              post.likes.push({ user: user });
+              post.isLiked = true;
+              button.classList.add("liked"); //  Исправлено: используем button вместо likeButton
+              renderUserPostsPageComponent({ appEl, posts, user });
+            })
+            .catch((error) => {
+              console.error("Ошибка при лайке поста:", error);
+              alert("Произошла ошибка при лайке поста.");
+            });
+        }
+      }
+    });
+  });
+}
 export function renderPostComponent({ post }) {
   const isOwnPost = user && post.user && post.user.id === user._id;
-  console.log("user.id:", user ? user._id : null);
-  console.log("post.user.id:", post.user ? post.user.id : null);
-  console.log("isOwnPost:", isOwnPost);
   let dateToShow = null;
   const createdAt = post.createdAt;
 
@@ -110,7 +155,7 @@ export function renderPostComponent({ post }) {
       <ul class="posts">
     <li class="post"  data-post-id="${post.id}">
       <div class="post-header" data-user-id="${post.user.id}">
-        <img src="${post.imageUrl}" class="post-header__user-image">
+        <img src="${post.user.imageUrl}" class="post-header__user-image">
         <p class="post-header__user-name">${post.user.name}</p>
         ${
           isOwnPost

@@ -1,10 +1,29 @@
-import { getPosts, getUserPosts, likePost, dislikePost } from "../api.js";
+import {
+  getPosts,
+  getUserPosts,
+  likePost,
+  dislikePost,
+  deletePost,
+} from "../api.js";
 import { USER_POSTS_PAGE } from "../routes.js";
 import { renderHeaderComponent } from "./header-component.js";
 import { goToPage, getToken, user } from "../index.js";
 import * as dateFns from "date-fns";
 import { ru } from "date-fns/locale";
 import { parseISO, isValid } from "date-fns"; //  Импортируем parseISO и isValid
+
+function escapeHtml(text) {
+  const map = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  };
+  return text.replace(/[&<>"']/g, function (m) {
+    return map[m];
+  });
+}
 
 export function renderPostsPageComponent({ appEl, userId }) {
   let postsData = [];
@@ -58,13 +77,15 @@ export function renderPostsPageComponent({ appEl, userId }) {
 
                      return `
                     <li class="post" data-user-id="${post.user.id}">
-                        <div class="post-header" >
+                        <div class="post-header"  data-user-id="${
+                          post.user.id
+                        }">
                             <img src="${
                               post.user.imageUrl
                             }" class="post-header__user-image">
-                            <p class="post-header__user-namez">${
+                            <p class="post-header__user-namez">${escapeHtml(
                               post.user.name
-                            }</p>
+                            )}</p>
                             ${
                               isOwnPost
                                 ? `<button class="delete-button" data-post-id="${post.id}" >Удалить</button>`
@@ -85,7 +106,9 @@ export function renderPostsPageComponent({ appEl, userId }) {
                             </p>
                         </div>
                         <p class="post-text">
-                            <span class="user-name">${post.user.name}</span>
+                            <span class="user-name">${escapeHtml(
+                              post.user.name
+                            )}</span>
                             ${post.description}
                         </p>
                         <p class="post-date">
@@ -107,7 +130,6 @@ export function renderPostsPageComponent({ appEl, userId }) {
     for (let userEl of document.querySelectorAll(".post-header")) {
       userEl.addEventListener("click", () => {
         const userId = userEl.dataset.userId; //  Получаем userId из data-user-id
-        console.log("Клик по аватарке, userId =", userId); //  Проверяем значение userId
         goToPage(USER_POSTS_PAGE, { userId: userId });
       });
     }
@@ -153,6 +175,25 @@ export function renderPostsPageComponent({ appEl, userId }) {
         }
       });
     }
+    for (let deleteButton of document.querySelectorAll(".delete-button")) {
+      deleteButton.addEventListener("click", (event) => {
+        event.stopPropagation(); //  Предотвращаем всплытие события
+        const postId = deleteButton.dataset.postId;
+
+        //  Вызываем функцию для удаления поста
+        deletePost({ token: getToken(), postId })
+          .then(() => {
+            //  Удаляем пост из массива postsData
+            postsData = postsData.filter((post) => post.id !== postId);
+            //  Перерисовываем страницу
+            render();
+          })
+          .catch((error) => {
+            console.error("Ошибка при удалении поста:", error);
+            alert("Произошла ошибка при удалении поста.");
+          });
+      });
+    }
   };
 
   if (userId) {
@@ -175,26 +216,6 @@ export function renderPostsPageComponent({ appEl, userId }) {
         console.error("Ошибка при загрузке постов:", error);
         alert("Произошла ошибка при загрузке постов.");
       });
-  }
-
-  for (let deleteButton of document.querySelectorAll(".delete-button")) {
-    deleteButton.addEventListener("click", (event) => {
-      event.stopPropagation(); //  Предотвращаем всплытие события
-      const postId = deleteButton.dataset.postId;
-
-      //  Вызываем функцию для удаления поста
-      deletePost({ token: getToken(), postId })
-        .then(() => {
-          //  Удаляем пост из массива postsData
-          postsData = postsData.filter((post) => post.id !== postId);
-          //  Перерисовываем страницу
-          render();
-        })
-        .catch((error) => {
-          console.error("Ошибка при удалении поста:", error);
-          alert("Произошла ошибка при удалении поста.");
-        });
-    });
   }
 }
 

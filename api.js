@@ -36,7 +36,7 @@ export function registerUser({ login, password, name, imageUrl, token }) {
     }),
   }).then((response) => {
     if (response.status === 400) {
-      throw new Error("Такой пользователь уже существует");
+      alert("Такой логин уже существует");
     }
     return response.json();
   });
@@ -90,7 +90,6 @@ export function addPost({ token, imageUrl, description }) {
 }
 
 export function getUserPosts({ token, userId }) {
-  console.log("getUserPosts: userId =", userId);
   return fetch(
     `${baseHost}/api/v1/${personalKey}/instapro/user-posts/${userId}`,
     {
