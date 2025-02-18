@@ -88,7 +88,7 @@ export function renderUserPostsPageComponent({ appEl, posts, user }) {
                 }
               });
               post.isLiked = false;
-              button.classList.remove("liked"); //  Исправлено: используем button вместо likeButton
+              button.classList.remove("liked");
               renderUserPostsPageComponent({ appEl, posts, user });
             })
             .catch((error) => {
@@ -100,7 +100,7 @@ export function renderUserPostsPageComponent({ appEl, posts, user }) {
             .then(() => {
               post.likes.push({ user: user });
               post.isLiked = true;
-              button.classList.add("liked"); //  Исправлено: используем button вместо likeButton
+              button.classList.add("liked");
               renderUserPostsPageComponent({ appEl, posts, user });
             })
             .catch((error) => {
