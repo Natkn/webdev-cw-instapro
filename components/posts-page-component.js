@@ -143,7 +143,12 @@ export function renderPostsPageComponent({ appEl, userId }) {
       likeButton.addEventListener("click", (event) => {
         event.stopPropagation();
         const postId = likeButton.dataset.postId;
-        const post = postsData.find((post) => post.id === postId);
+        const postIndex = postsData.findIndex((post) => post.id === postId); //  Используем findIndex
+        if (postIndex === -1) {
+          console.error(`Пост с id ${postId} не найден`);
+          return;
+        }
+        const post = postsData[postIndex];
         let likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]"); // Получаем текущий список лайкнутых постов
         const isLiked = likedPosts.includes(post.id);
 
@@ -151,14 +156,22 @@ export function renderPostsPageComponent({ appEl, userId }) {
           if (isLiked) {
             dislikePost({ token: getToken(), postId })
               .then(() => {
-                post.likes = post.likes.filter(
-                  (like) => !(like && like.user && like.user.id === user.id)
-                );
-
-                likedPosts = likedPosts.filter((id) => id !== postId); // Удаляем пост из списка лайкнутых
-                localStorage.setItem("likedPosts", JSON.stringify(likedPosts)); // Обновляем localStorage
-
-                render(); // Перерисовываем страницу
+                getPosts({ token: getToken() }).then((newPosts) => {
+                  const updatedPost = newPosts.find((p) => p.id === postId);
+                  if (updatedPost) {
+                    postsData[postIndex].likes = updatedPost.likes; //  Обновляем количество лайков
+                    likedPosts = likedPosts.filter((id) => id !== postId);
+                    localStorage.setItem(
+                      "likedPosts",
+                      JSON.stringify(likedPosts)
+                    );
+                    render();
+                  } else {
+                    console.error(
+                      "Не удалось найти обновленный пост после дизлайка"
+                    );
+                  }
+                });
               })
               .catch((error) => {
                 console.error("Ошибка при дизлайке поста:", error);
@@ -167,11 +180,22 @@ export function renderPostsPageComponent({ appEl, userId }) {
           } else {
             likePost({ token: getToken(), postId })
               .then(() => {
-                post.likes.push({ user: user });
-                likedPosts.push(postId); // Добавляем пост в список лайкнутых
-                localStorage.setItem("likedPosts", JSON.stringify(likedPosts)); // Обновляем localStorage
-
-                render();
+                getPosts({ token: getToken() }).then((newPosts) => {
+                  const updatedPost = newPosts.find((p) => p.id === postId);
+                  if (updatedPost) {
+                    postsData[postIndex].likes = updatedPost.likes; //  Обновляем количество лайков
+                    likedPosts.push(postId);
+                    localStorage.setItem(
+                      "likedPosts",
+                      JSON.stringify(likedPosts)
+                    );
+                    render();
+                  } else {
+                    console.error(
+                      "Не удалось найти обновленный пост после лайка"
+                    );
+                  }
+                });
               })
               .catch((error) => {
                 console.error("Ошибка при лайке поста:", error);

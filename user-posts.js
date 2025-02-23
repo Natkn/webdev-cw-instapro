@@ -5,31 +5,34 @@ import { parseISO, isValid } from "date-fns"; // Импортируем parseISO
 import { user, getToken } from "./index.js";
 import { renderHeaderComponent } from "./components/header-component.js";
 import { escapeHtml } from "./components/posts-page-component.js";
-import { deletePost, likePost, dislikePost } from "./api.js";
+import { deletePost, likePost, dislikePost, getPosts } from "./api.js";
 
 export function renderUserPostsPageComponent({ appEl, posts, user }) {
+  //  Очищаем контейнер
   while (appEl.firstChild) {
     appEl.removeChild(appEl.firstChild);
   }
 
+  //  Отрисовываем шапку
   const headerEl = document.createElement("div");
   appEl.appendChild(headerEl);
   renderHeaderComponent({ element: headerEl, user: user });
 
-  const postsListEl = document.createElement("ul");
-  postsListEl.classList.add("posts");
-  appEl.appendChild(postsListEl);
-
-  renderHeaderComponent({ element: headerEl, user: user });
-
+  //  Если нет постов, выводим сообщение
   if (!posts || posts.length === 0) {
     const noPostsEl = document.createElement("p");
     noPostsEl.textContent = "У этого пользователя пока нет постов.";
     appEl.appendChild(noPostsEl);
-  } else {
-    const postsListEl = document.createElement("ul");
-    postsListEl.classList.add("posts");
-    appEl.appendChild(postsListEl);
+    return;
+  }
+
+  //  Отрисовываем список постов
+  const postsListEl = document.createElement("ul");
+  postsListEl.classList.add("posts");
+  appEl.appendChild(postsListEl);
+
+  const renderPosts = () => {
+    postsListEl.innerHTML = "";
 
     const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
 
@@ -42,8 +45,15 @@ export function renderUserPostsPageComponent({ appEl, posts, user }) {
         },
         user: user,
         onDelete: () => {
-          posts = posts.filter((p) => p.id !== post.id);
-          renderUserPostsPageComponent({ appEl, posts, user });
+          deletePost({ token: getToken(), postId: post.id })
+            .then(() => {
+              posts = posts.filter((p) => p.id !== post.id);
+              renderPosts();
+            })
+            .catch((error) => {
+              console.error("Ошибка при удалении поста:", error);
+              alert("Произошла ошибка при удалении поста.");
+            });
         },
       });
       postsListEl.innerHTML += postHtml;
@@ -58,8 +68,7 @@ export function renderUserPostsPageComponent({ appEl, posts, user }) {
         deletePost({ token: getToken(), postId })
           .then(() => {
             posts = posts.filter((post) => post.id !== postId);
-
-            renderUserPostsPageComponent({ appEl, posts, user });
+            renderPosts();
           })
           .catch((error) => {
             console.error("Ошибка при удалении поста:", error);
@@ -67,72 +76,97 @@ export function renderUserPostsPageComponent({ appEl, posts, user }) {
           });
       });
     });
-  }
 
-  const likeButtons = document.querySelectorAll(".like-button");
-  likeButtons.forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const postId = button.dataset.postId;
-      const post = posts.find((post) => post.id === postId);
-      const likeButton = button;
+    const likeButtons = document.querySelectorAll(".like-button");
+    likeButtons.forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const postId = button.dataset.postId;
+        const post = posts.find((post) => post.id === postId);
+        const likeButton = button;
 
-      if (post) {
-        let likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
-        const isLiked = likedPosts.includes(post.id);
+        if (post) {
+          let likedPosts = JSON.parse(
+            localStorage.getItem("likedPosts") || "[]"
+          );
+          const isLiked = likedPosts.includes(post.id);
 
-        if (isLiked) {
-          dislikePost({ token: getToken(), postId })
-            .then(() => {
-              post.likes = post.likes.filter(
-                (like) => !(like && like.user && like.user.id === user.id)
-              );
-
-              likedPosts = likedPosts.filter((id) => id !== postId);
-              localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
-              likeButton.classList.remove("liked");
-
-              const postLikesText = button
-                .closest(".post")
-                .querySelector(".post-likes-text");
-              if (postLikesText) {
-                postLikesText.innerHTML = `Нравится: <strong>${Math.max(
-                  0,
-                  post.likes.length - 1
-                )}</strong>`;
-              }
-            })
-            .catch((error) => {
-              console.error("Ошибка при дизлайке поста:", error);
-              alert("Произошла ошибка при дизлайке поста.");
-            });
-        } else {
-          likePost({ token: getToken(), postId })
-            .then(() => {
-              post.likes.push({ user: user });
-
-              likedPosts.push(postId);
-              localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
-              likeButton.classList.add("liked");
-
-              const postLikesText = button
-                .closest(".post")
-                .querySelector(".post-likes-text");
-              if (postLikesText) {
-                postLikesText.innerHTML = `Нравится: <strong>${Math.max(
-                  0,
-                  post.likes.length - 1
-                )}</strong>`;
-              }
-            })
-            .catch((error) => {
-              console.error("Ошибка при лайке поста:", error);
-              alert("Произошла ошибка при лайке поста.");
-            });
+          if (isLiked) {
+            dislikePost({ token: getToken(), postId })
+              .then(() => {
+                getPosts({ token: getToken() })
+                  .then((newPosts) => {
+                    const updatedPost = newPosts.find((p) => p.id === postId);
+                    if (updatedPost) {
+                      posts.forEach((p, index) => {
+                        if (p.id === postId) {
+                          posts[index] = updatedPost;
+                        }
+                      });
+                    }
+                    likedPosts = likedPosts.filter((id) => id !== postId);
+                    localStorage.setItem(
+                      "likedPosts",
+                      JSON.stringify(likedPosts)
+                    );
+                    renderPosts();
+                  })
+                  .catch((error) => {
+                    console.error(
+                      "Ошибка при получении данных о посте после дизлайка:",
+                      error
+                    );
+                    alert(
+                      "Произошла ошибка при получении данных о посте после дизлайка."
+                    );
+                  });
+              })
+              .catch((error) => {
+                console.error("Ошибка при дизлайке поста:", error);
+                alert("Произошла ошибка при дизлайке поста.");
+              });
+          } else {
+            likePost({ token: getToken(), postId })
+              .then(() => {
+                //  Получаем актуальные данные о посте с сервера
+                getPosts({ token: getToken() })
+                  .then((newPosts) => {
+                    const updatedPost = newPosts.find((p) => p.id === postId);
+                    if (updatedPost) {
+                      //  Обновляем данные о посте в массиве posts
+                      posts.forEach((p, index) => {
+                        if (p.id === postId) {
+                          posts[index] = updatedPost;
+                        }
+                      });
+                    }
+                    likedPosts.push(postId);
+                    localStorage.setItem(
+                      "likedPosts",
+                      JSON.stringify(likedPosts)
+                    );
+                    renderPosts(); // Перерисовываем посты
+                  })
+                  .catch((error) => {
+                    console.error(
+                      "Ошибка при получении данных о посте после лайка:",
+                      error
+                    );
+                    alert(
+                      "Произошла ошибка при получении данных о посте после лайка."
+                    );
+                  });
+              })
+              .catch((error) => {
+                console.error("Ошибка при лайке поста:", error);
+                alert("Произошла ошибка при лайке поста.");
+              });
+          }
         }
-      }
+      });
     });
-  });
+  };
+  renderPosts();
 }
 export function renderPostComponent({ post }) {
   const isOwnPost = user && post.user && post.user.id === user._id;

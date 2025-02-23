@@ -16,7 +16,6 @@ import {
   saveUserToLocalStorage,
 } from "./helpers.js";
 import { addPost } from "./api.js";
-import { renderHeaderComponent } from "./components/header-component.js";
 import { renderUserPostsPageComponent } from "./user-posts.js";
 
 export let user = getUserFromLocalStorage();
@@ -124,6 +123,7 @@ const renderApp = (data) => {
   }
 
   if (page === POSTS_PAGE) {
+    renderLoadingPageComponent({ appEl, user, goToPage });
     renderPostsPageComponent({
       appEl,
       user,
