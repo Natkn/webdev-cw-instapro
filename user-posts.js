@@ -4,6 +4,7 @@ import { ru } from "date-fns/locale";
 import { parseISO, isValid } from "date-fns"; // Импортируем parseISO и isValid
 import { user, getToken } from "./index.js";
 import { renderHeaderComponent } from "./components/header-component.js";
+import { escapeHtml } from "./components/posts-page-component.js";
 import { deletePost, likePost, dislikePost } from "./api.js";
 
 export function renderUserPostsPageComponent({ appEl, posts, user }) {
@@ -16,10 +17,9 @@ export function renderUserPostsPageComponent({ appEl, posts, user }) {
   renderHeaderComponent({ element: headerEl, user: user });
 
   const postsListEl = document.createElement("ul");
-  postsListEl.classList.add("posts"); //  Добавляем класс "posts"
+  postsListEl.classList.add("posts");
   appEl.appendChild(postsListEl);
 
-  // 2. Рендерим шапку в созданный элемент
   renderHeaderComponent({ element: headerEl, user: user });
 
   if (!posts || posts.length === 0) {
@@ -27,37 +27,38 @@ export function renderUserPostsPageComponent({ appEl, posts, user }) {
     noPostsEl.textContent = "У этого пользователя пока нет постов.";
     appEl.appendChild(noPostsEl);
   } else {
-    // Создаем список для постов
-    const postsListEl = document.createElement("ul"); //  Изменил на <ul> чтобы соответствовать html
-    postsListEl.classList.add("posts"); //  Добавил класс чтобы работал css
+    const postsListEl = document.createElement("ul");
+    postsListEl.classList.add("posts");
     appEl.appendChild(postsListEl);
 
+    const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+
     posts.forEach((post) => {
+      const isLiked = likedPosts.includes(post.id);
       const postHtml = renderPostComponent({
-        post: post,
-        user: user, // Передаем user
+        post: {
+          ...post,
+          isLiked: isLiked,
+        },
+        user: user,
         onDelete: () => {
-          //  Функция, которая будет вызвана при нажатии на кнопку "Удалить"
-          posts = posts.filter((p) => p.id !== post.id); //  Обновляем список постов
-          renderUserPostsPageComponent({ appEl, posts, user }); //  Перерисовываем страницу
+          posts = posts.filter((p) => p.id !== post.id);
+          renderUserPostsPageComponent({ appEl, posts, user });
         },
       });
       postsListEl.innerHTML += postHtml;
     });
 
-    // Добавляем обработчики удаления после добавления постов на страницу
     const deleteButtons = document.querySelectorAll(".delete-button");
     deleteButtons.forEach((button) => {
       button.addEventListener("click", (event) => {
-        event.stopPropagation(); //  Предотвращаем всплытие события
+        event.stopPropagation();
         const postId = button.dataset.postId;
 
         deletePost({ token: getToken(), postId })
           .then(() => {
-            //  Удаляем пост из массива posts
             posts = posts.filter((post) => post.id !== postId);
 
-            //  Перерисовываем страницу
             renderUserPostsPageComponent({ appEl, posts, user });
           })
           .catch((error) => {
@@ -73,23 +74,33 @@ export function renderUserPostsPageComponent({ appEl, posts, user }) {
     button.addEventListener("click", (event) => {
       event.stopPropagation();
       const postId = button.dataset.postId;
-
       const post = posts.find((post) => post.id === postId);
+      const likeButton = button;
 
       if (post) {
-        if (post.isLiked) {
+        let likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+        const isLiked = likedPosts.includes(post.id);
+
+        if (isLiked) {
           dislikePost({ token: getToken(), postId })
             .then(() => {
-              post.likes = post.likes.filter((like) => {
-                if (like && like.user) {
-                  return like.user.id !== user.id;
-                } else {
-                  return false;
-                }
-              });
-              post.isLiked = false;
-              button.classList.remove("liked");
-              renderUserPostsPageComponent({ appEl, posts, user });
+              post.likes = post.likes.filter(
+                (like) => !(like && like.user && like.user.id === user.id)
+              );
+
+              likedPosts = likedPosts.filter((id) => id !== postId);
+              localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
+              likeButton.classList.remove("liked");
+
+              const postLikesText = button
+                .closest(".post")
+                .querySelector(".post-likes-text");
+              if (postLikesText) {
+                postLikesText.innerHTML = `Нравится: <strong>${Math.max(
+                  0,
+                  post.likes.length - 1
+                )}</strong>`;
+              }
             })
             .catch((error) => {
               console.error("Ошибка при дизлайке поста:", error);
@@ -99,9 +110,20 @@ export function renderUserPostsPageComponent({ appEl, posts, user }) {
           likePost({ token: getToken(), postId })
             .then(() => {
               post.likes.push({ user: user });
-              post.isLiked = true;
-              button.classList.add("liked");
-              renderUserPostsPageComponent({ appEl, posts, user });
+
+              likedPosts.push(postId);
+              localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
+              likeButton.classList.add("liked");
+
+              const postLikesText = button
+                .closest(".post")
+                .querySelector(".post-likes-text");
+              if (postLikesText) {
+                postLikesText.innerHTML = `Нравится: <strong>${Math.max(
+                  0,
+                  post.likes.length - 1
+                )}</strong>`;
+              }
             })
             .catch((error) => {
               console.error("Ошибка при лайке поста:", error);
@@ -148,7 +170,8 @@ export function renderPostComponent({ post }) {
   } else {
     dateElement = "Некорректная дата";
   }
-
+  const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+  const isLiked = likedPosts.includes(post.id);
   return `
    <div class="page-container">
      <div class="header-container"></div>
@@ -156,7 +179,7 @@ export function renderPostComponent({ post }) {
     <li class="post"  data-post-id="${post.id}">
       <div class="post-header" data-user-id="${post.user.id}">
         <img src="${post.user.imageUrl}" class="post-header__user-image">
-        <p class="post-header__user-name">${post.user.name}</p>
+        <p class="post-header__user-name">${escapeHtml(post.user.name)}</p>
         ${
           isOwnPost
             ? `<button class="delete-button" data-post-id="${post.id}" >Удалить</button>`
@@ -167,16 +190,20 @@ export function renderPostComponent({ post }) {
         <img class="post-image" src="${post.imageUrl}">
       </div>
       <div class="post-likes">
-        <button data-post-id="${post.id}" class="like-button ${
-    post.isLiked ? "liked" : ""
-  }"></button>
+      ${
+        user
+          ? `<button data-post-id="${post.id}" class="like-button ${
+              isLiked ? "liked" : ""
+            }"></button>`
+          : `<p>Войдите, чтобы лайкнуть</p>`
+      }
         <p class="post-likes-text">
           Нравится: <strong>${post.likes.length}</strong>
         </p>
       </div>
       <p class="post-text">
-        <span class="user-name">${post.user.name}</span>
-        ${post.description}
+        <span class="user-name">${escapeHtml(post.user.name)}</span>
+        ${escapeHtml(post.description)}
       </p>
       <p class="post-date">
         ${dateElement}

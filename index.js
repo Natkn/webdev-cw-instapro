@@ -52,32 +52,19 @@ export const goToPage = (newPage, data) => {
     if (newPage === ADD_POSTS_PAGE) {
       /* Если пользователь не авторизован, то отправляем его на страницу авторизации перед добавлением поста */
       page = user ? ADD_POSTS_PAGE : AUTH_PAGE;
-      return renderApp();
+      return;
     }
 
     if (newPage === POSTS_PAGE) {
       page = LOADING_PAGE;
-      renderApp();
-
-      return getPosts({ token: getToken() })
-        .then((newPosts) => {
-          page = POSTS_PAGE;
-          posts = newPosts;
-          renderApp();
-        })
-        .catch(() => {
-          goToPage(POSTS_PAGE);
-        });
     }
 
     if (newPage === USER_POSTS_PAGE) {
       page = USER_POSTS_PAGE;
       posts = [];
-      return renderApp();
+      renderApp();
+      return;
     }
-
-    page = newPage;
-    renderApp();
 
     return;
   }
@@ -90,19 +77,20 @@ headerContainer.className = "header-container";
 appEl.appendChild(headerContainer); // Добавляем headerContainer внутрь appEl
 document.body.appendChild(appEl); // Добавляем appEl в DOM (вместе с headerContainer)
 
-const renderApp = async (data) => {
+const renderApp = (data) => {
   const appEl = document.getElementById("app");
 
   if (page === LOADING_PAGE) {
-    return renderLoadingPageComponent({
+    renderLoadingPageComponent({
       appEl,
       user,
       goToPage,
     });
+    return; // Добавлено для выхода из функции
   }
 
   if (page === AUTH_PAGE) {
-    return renderAuthPageComponent({
+    renderAuthPageComponent({
       appEl,
       setUser: (newUser) => {
         user = newUser;
@@ -112,10 +100,11 @@ const renderApp = async (data) => {
       user,
       goToPage,
     });
+    return; // Добавлено для выхода из функции
   }
 
   if (page === ADD_POSTS_PAGE) {
-    return renderAddPostPageComponent({
+    renderAddPostPageComponent({
       appEl,
       onAddPostClick: (postData) => {
         addPost({
@@ -131,12 +120,16 @@ const renderApp = async (data) => {
           });
       },
     });
+    return; // Добавлено для выхода из функции
   }
 
   if (page === POSTS_PAGE) {
-    return renderPostsPageComponent({
+    renderPostsPageComponent({
       appEl,
+      user,
+      token: getToken(),
     });
+    return; // Добавлено для выхода из функции
   }
   const userImages = document.querySelectorAll(".post-header__user-image");
 
@@ -146,6 +139,7 @@ const renderApp = async (data) => {
       goToPage(USER_POSTS_PAGE, { userId });
     });
   }
+
   if (page === USER_POSTS_PAGE) {
     if (!data || !data.userId) {
       return;
@@ -153,20 +147,22 @@ const renderApp = async (data) => {
 
     const userId = data.userId;
     renderLoadingPageComponent({ appEl, user, goToPage });
-    try {
-      const userPosts = await getUserPosts({
-        token: user.token,
-        userId: userId,
+    getUserPosts({
+      token: getToken(),
+      userId: userId,
+    })
+      .then((userPosts) => {
+        renderUserPostsPageComponent({
+          appEl,
+          posts: userPosts,
+          goToPage,
+          userId,
+          user: user,
+        });
+      })
+      .catch((error) => {
+        appEl.innerHTML = `<h1>Ошибка загрузки постов пользователя</h1><p>${error.message}</p>`;
       });
-      renderUserPostsPageComponent({
-        appEl,
-        posts: userPosts,
-        goToPage,
-        userId,
-      });
-    } catch (error) {
-      appEl.innerHTML = `<h1>Ошибка загрузки постов пользователя</h1><p>${error.message}</p>`;
-    }
     return;
   }
 };
