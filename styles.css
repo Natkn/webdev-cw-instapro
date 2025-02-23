@@ -386,8 +386,10 @@ body {
   border-radius: 40px;
   margin-right: 10px;
 }
-ul.posts li {
+ul.posts {
   list-style-type: none;
+  margin: 0px;
+  padding: 0px;
 }
 
 .delete-button {
@@ -488,7 +490,10 @@ h1 {
 }
 
 .posts {
-  margin-left: -2%;
+  margin-left: -3%;
+  width: 100%; /* Занимает всю ширину контейнера .posts */
+  box-sizing: border-box; /* Включаем padding и border в общую ширину */
+  margin-bottom: 20px;
 }
 
 #back-to-top-btn {
@@ -516,14 +521,26 @@ h1 {
   display: block;
 }
 
-/* Стили для экранов с шириной до 768px (мобильные телефоны) */
 @media (max-width: 768px) {
   body {
     font-size: 16px;
   }
 
+  .post-image-container {
+    margin-left: 0px;
+    margin-right: 0px;
+    height: 500px;
+    display: flex;
+    justify-content: center;
+    background-color: #e0e0e0;
+    overflow: hidden;
+  }
+  .page-header {
+    width: 100%;
+  }
+
   .page-container {
-    width: 100%; /* Занимает всю ширину экрана */
+    width: 100%;
     padding: 10px;
   }
 
@@ -531,15 +548,12 @@ h1 {
     text-align: center;
   }
 
-  .navigation {
-    display: none; /* Скрываем навигацию на мобильных устройствах */
-  }
   .delete-button {
     display: flex;
     box-sizing: border-box;
     flex-wrap: wrap;
     position: relative;
-    margin-top: -12%;
+    margin-top: -6%;
     margin-bottom: 8%;
     margin-left: 80%;
   }
@@ -547,25 +561,51 @@ h1 {
   .add-post-sign {
     margin-left: 90%;
   }
-  .posts {
+
+  .post {
     width: 100%;
-    margin-left: -3%;
     box-sizing: border-box;
+    margin-bottom: 20px;
   }
 }
 
-/* Стили для экранов с шириной больше 768px (планшеты и компьютеры) */
 @media (min-width: 769px) {
   body {
-    font-size: 18px;
+    font-size: 16px;
+  }
+
+  .post-header {
+    margin-left: 3%;
+    width: 90%;
+  }
+
+  .post-likes {
+    margin-left: 2%;
+    width: 80%;
+  }
+  .post-text,
+  .post-date {
+    margin-left: 3%;
+    width: 80%;
+  }
+
+  .page-header {
+    box-sizing: border-box;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .page-container {
+    width: 100%;
   }
 
   .header-container {
-    text-align: left;
-  }
-
-  .navigation {
-    display: block; /* Показываем навигацию на больших экранах */
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: stretch;
+    box-sizing: border-box;
   }
 
   .delete-button {
@@ -573,8 +613,29 @@ h1 {
     box-sizing: border-box;
     flex-wrap: wrap;
     position: relative;
-    margin-top: -4%;
     margin-bottom: 4%;
+    margin-left: 96%;
+  }
+
+  .add-post-sign {
     margin-left: 90%;
+  }
+
+  .post-image-container {
+    overflow: hidden;
+    position: relative;
+    margin-left: 0px;
+    margin-right: 0px;
+  }
+  .post-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    margin: auto;
+  }
+  .post {
+    box-sizing: border-box;
   }
 }

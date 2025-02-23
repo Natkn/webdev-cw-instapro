@@ -12,7 +12,7 @@ import * as dateFns from "date-fns";
 import { ru } from "date-fns/locale";
 import { parseISO, isValid } from "date-fns"; //  Импортируем parseISO и isValid
 
-function escapeHtml(text) {
+export function escapeHtml(text) {
   const map = {
     "&": "&amp;",
     "<": "&lt;",
@@ -28,6 +28,7 @@ function escapeHtml(text) {
 export function renderPostsPageComponent({ appEl, userId }) {
   let postsData = [];
   const render = () => {
+    const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
     const appHtml = `
               <div class="page-container">
                 <div class="header-container"></div>
@@ -35,7 +36,7 @@ export function renderPostsPageComponent({ appEl, userId }) {
                  ${postsData
                    .map((post) => {
                      const isOwnPost =
-                       user && post.user && post.user.id === user._id;
+                       user && post.user && post.user.id === user?._id;
                      let dateToShow = null;
                      const createdAt = post.createdAt;
                      if (createdAt) {
@@ -74,7 +75,7 @@ export function renderPostsPageComponent({ appEl, userId }) {
                      } else {
                        dateElement = "Некорректная дата";
                      }
-
+                     const isLiked = likedPosts.includes(post.id);
                      return `
                     <li class="post" data-user-id="${post.user.id}">
                         <div class="post-header"  data-user-id="${
@@ -96,11 +97,15 @@ export function renderPostsPageComponent({ appEl, userId }) {
                             <img class="post-image" src="${post.imageUrl}">
                         </div>
                         <div class="post-likes">
-                            <button data-post-id="${
-                              post.id
-                            }" class="like-button ${
-                       post.isLiked ? "liked" : ""
-                     }"></button>
+                           ${
+                             user
+                               ? `<button data-post-id="${
+                                   post.id
+                                 }" class="like-button ${
+                                   isLiked ? "liked" : ""
+                                 }"></button>`
+                               : `<p>Войдите, чтобы лайкнуть</p>`
+                           }
                             <p class="post-likes-text">
                                 Нравится: <strong>${post.likes.length}</strong>
                             </p>
@@ -109,7 +114,7 @@ export function renderPostsPageComponent({ appEl, userId }) {
                             <span class="user-name">${escapeHtml(
                               post.user.name
                             )}</span>
-                            ${post.description}
+                            ${escapeHtml(post.description)}
                         </p>
                         <p class="post-date">
                             ${dateElement}
@@ -138,22 +143,35 @@ export function renderPostsPageComponent({ appEl, userId }) {
       likeButton.addEventListener("click", (event) => {
         event.stopPropagation();
         const postId = likeButton.dataset.postId;
-        const post = postsData.find((post) => post.id === postId);
+        const postIndex = postsData.findIndex((post) => post.id === postId); //  Используем findIndex
+        if (postIndex === -1) {
+          console.error(`Пост с id ${postId} не найден`);
+          return;
+        }
+        const post = postsData[postIndex];
+        let likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]"); // Получаем текущий список лайкнутых постов
+        const isLiked = likedPosts.includes(post.id);
 
         if (post) {
-          if (post.isLiked) {
+          if (isLiked) {
             dislikePost({ token: getToken(), postId })
               .then(() => {
-                post.likes = post.likes.filter((like) => {
-                  if (like && like.user) {
-                    return like.user.id !== user.id;
+                getPosts({ token: getToken() }).then((newPosts) => {
+                  const updatedPost = newPosts.find((p) => p.id === postId);
+                  if (updatedPost) {
+                    postsData[postIndex].likes = updatedPost.likes; //  Обновляем количество лайков
+                    likedPosts = likedPosts.filter((id) => id !== postId);
+                    localStorage.setItem(
+                      "likedPosts",
+                      JSON.stringify(likedPosts)
+                    );
+                    render();
                   } else {
-                    return false;
+                    console.error(
+                      "Не удалось найти обновленный пост после дизлайка"
+                    );
                   }
                 });
-                post.isLiked = false;
-                likeButton.classList.remove("liked");
-                render();
               })
               .catch((error) => {
                 console.error("Ошибка при дизлайке поста:", error);
@@ -162,10 +180,22 @@ export function renderPostsPageComponent({ appEl, userId }) {
           } else {
             likePost({ token: getToken(), postId })
               .then(() => {
-                post.likes.push({ user: user });
-                post.isLiked = true;
-                likeButton.classList.add("liked");
-                render();
+                getPosts({ token: getToken() }).then((newPosts) => {
+                  const updatedPost = newPosts.find((p) => p.id === postId);
+                  if (updatedPost) {
+                    postsData[postIndex].likes = updatedPost.likes; //  Обновляем количество лайков
+                    likedPosts.push(postId);
+                    localStorage.setItem(
+                      "likedPosts",
+                      JSON.stringify(likedPosts)
+                    );
+                    render();
+                  } else {
+                    console.error(
+                      "Не удалось найти обновленный пост после лайка"
+                    );
+                  }
+                });
               })
               .catch((error) => {
                 console.error("Ошибка при лайке поста:", error);
@@ -196,27 +226,41 @@ export function renderPostsPageComponent({ appEl, userId }) {
     }
   };
 
-  if (userId) {
-    getUserPosts({ token: getToken(), userId })
-      .then((data) => {
-        postsData = data;
-        render();
-      })
-      .catch((error) => {
-        console.error("Ошибка при загрузке постов пользователя:", error);
-        alert("Произошла ошибка при загрузке постов пользователя.");
-      });
-  } else {
-    getPosts({ token: getToken() })
-      .then((data) => {
-        postsData = data;
-        render();
-      })
-      .catch((error) => {
-        console.error("Ошибка при загрузке постов:", error);
-        alert("Произошла ошибка при загрузке постов.");
-      });
-  }
+  let isInitialLoad = true; //  Добавляем флаг
+
+  const loadPosts = () => {
+    if (!isInitialLoad) {
+      return; //  Если это не первая загрузка, выходим из функции
+    }
+    isInitialLoad = false; //  Сбрасываем флаг
+
+    const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+    const processPosts = (data) => {
+      postsData = data.map((post) => ({
+        ...post,
+        isLiked: likedPosts.includes(post.id),
+      }));
+      render();
+    };
+
+    if (userId) {
+      getUserPosts({ token: getToken(), userId })
+        .then(processPosts)
+        .catch((error) => {
+          console.error("Ошибка при загрузке постов пользователя:", error);
+          alert("Произошла ошибка при загрузке постов пользователя.");
+        });
+    } else {
+      getPosts({ token: getToken() })
+        .then(processPosts)
+        .catch((error) => {
+          console.error("Ошибка при загрузке постов:", error);
+          alert("Произошла ошибка при загрузке постов.");
+        });
+    }
+  };
+
+  loadPosts(); //  Вызываем функцию только один раз
 }
 
 const backToTopButton = document.createElement("button");
