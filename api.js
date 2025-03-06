@@ -6,15 +6,20 @@ const baseHost = "https://webdev-hw-api.vercel.app";
 const postsHost = `${baseHost}/api/v1/${personalKey}/instapro`;
 
 export function getPosts({ token }) {
+  const headers = {};
+  if (token) {
+    headers["Authorization"] = token;
+  }
   return fetch(postsHost, {
     method: "GET",
     headers: {
-      Authorization: token,
+      headers,
     },
   })
     .then((response) => {
-      if (response.status === 401) {
-        throw new Error("Нет авторизации");
+      if (!response.ok) {
+        // Убираем проверку status === 401
+        throw new Error("Ошибка при загрузке постов"); //Изменили сообщение ошибки, тк теперь 401 не ожидается
       }
 
       return response.json();
@@ -90,12 +95,16 @@ export function addPost({ token, imageUrl, description }) {
 }
 
 export function getUserPosts({ token, userId }) {
+  const headers = {};
+  if (token) {
+    headers["Authorization"] = token;
+  }
   return fetch(
     `${baseHost}/api/v1/${personalKey}/instapro/user-posts/${userId}`,
     {
       method: "GET",
       headers: {
-        Authorization: token,
+        headers,
       },
     }
   )
@@ -109,6 +118,7 @@ export function getUserPosts({ token, userId }) {
       return data.posts;
     });
 }
+
 export function likePost({ token, postId }) {
   return fetch(`${postsHost}/${postId}/like`, {
     method: "POST",
